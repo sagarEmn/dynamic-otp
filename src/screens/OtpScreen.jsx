@@ -1,29 +1,160 @@
-// Phase 3 is the core — the three tier modes. Phase 1 placeholder shows the
-// computed tier so we can confirm the engine -> context→screen path works.
+// Phase 3 is the core — the three tier modes. UI changes by tier.
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRisk } from "../context/useRisk.js";
 import ScreenHeader from "../components/ui/ScreenHeader.jsx";
 import Banner from "../components/ui/Banner.jsx";
 import Button from "../components/ui/Button.jsx";
 
+const DEMO_OTP = "123456";
+const INTERVENTION_TIMER_SECONDS = 10;
+
+const buildSignalSummary = (firedSignals) => {
+  if (!firedSignals.length) return "No risk signals detected.";
+  const labels = firedSignals.map((signal) => signal.label);
+  return `We noticed: ${labels.join(", ")}.`;
+};
+
 export default function OtpScreen() {
   const navigate = useNavigate();
   const { result } = useRisk();
+  const [otp, setOtp] = useState("");
+  const [error, setError] = useState("");
+  const [acknowledged, setAcknowledged] = useState(false);
+  const [checks, setChecks] = useState({
+    verifyReceiver: false,
+    neverShareOtp: false,
+  });
+  const [secondsLeft, setSecondsLeft] = useState(() =>
+    result.tier === "intervention" ? INTERVENTION_TIMER_SECONDS : 0,
+  );
+
+  useEffect(() => {
+    if (result.tier !== "intervention") return;
+    const timer = setInterval(() => {
+      setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [result.tier]);
+
+  const signalSummary = useMemo(
+    () => buildSignalSummary(result.firedSignals),
+    [result.firedSignals],
+  );
+
+  const canVerify = (() => {
+    if (result.tier === "caution") return acknowledged;
+    if (result.tier === "intervention")
+      return secondsLeft === 0 && checks.verifyReceiver && checks.neverShareOtp;
+    return true;
+  })();
+
+  const onSubmit = (event) => {
+    event.preventDefault();
+    if (!canVerify) return;
+    if (otp !== DEMO_OTP) {
+      setError("Incorrect OTP. Please try again.");
+      return;
+    }
+    navigate("/success");
+  };
 
   return (
     <>
-      <ScreenHeader title="Verify OTP" />
-      <div className="flex-1 px-5 py-6 flex flex-col gap-4">
+      <ScreenHeader
+        title="Verify OTP"
+        tone={result.tier === "intervention" ? "dark" : "green"}
+      />
+      <form
+        onSubmit={onSubmit}
+        className={`flex-1 px-5 py-6 flex flex-col gap-5 ${
+          result.tier === "intervention" ? "bg-danger-bg text-white" : ""
+        }`}
+      >
         <Banner tone={result.tier}>
-          Tier: <strong>{result.tier}</strong> · score {result.score}
+          {result.tier === "stealth" && "Never share your OTP with anyone."}
+          {result.tier !== "stealth" && signalSummary}
         </Banner>
-        <p className="text-xs text-esewa-textMuted">
-          Fired: {result.firedSignals.map((s) => s.label).join(", ") || "none"}
-        </p>
-        <div className="mt-auto">
-          <Button onClick={() => navigate("/success")}>Verify</Button>
+
+        <div className="flex flex-col gap-2">
+          <label className="text-xs text-esewa-textMuted">
+            Enter 6-digit OTP
+          </label>
+          <input
+            className={`w-full rounded-lg px-3 py-3 text-center text-lg tracking-[0.6em] bg-white text-esewa-text border border-esewa-border outline-none focus:border-esewa-green focus:ring-1 focus:ring-esewa-green ${
+              result.tier === "intervention" ? "opacity-90" : ""
+            }`}
+            inputMode="numeric"
+            maxLength={6}
+            value={otp}
+            disabled={!canVerify}
+            onChange={(event) => {
+              setOtp(event.target.value.replace(/\D/g, ""));
+              if (error) setError("");
+            }}
+            placeholder="••••••"
+          />
+          {error ? <p className="text-xs text-danger-accent">{error}</p> : null}
         </div>
-      </div>
+
+        {result.tier === "caution" ? (
+          <label className="flex items-start gap-3 text-sm">
+            <input
+              type="checkbox"
+              className="mt-0.5 h-4 w-4 accent-caution-accent"
+              checked={acknowledged}
+              onChange={(event) => setAcknowledged(event.target.checked)}
+            />
+            I understand this payment is high risk and I want to continue.
+          </label>
+        ) : null}
+
+        {result.tier === "intervention" ? (
+          <div className="flex flex-col gap-3 text-sm">
+            <p className="text-danger-accent font-semibold">
+              Hold on {secondsLeft}s — review before entering OTP.
+            </p>
+            <label className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 accent-danger-accent"
+                checked={checks.verifyReceiver}
+                onChange={(event) =>
+                  setChecks((prev) => ({
+                    ...prev,
+                    verifyReceiver: event.target.checked,
+                  }))
+                }
+              />
+              I have verified the recipient and amount are correct.
+            </label>
+            <label className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 accent-danger-accent"
+                checked={checks.neverShareOtp}
+                onChange={(event) =>
+                  setChecks((prev) => ({
+                    ...prev,
+                    neverShareOtp: event.target.checked,
+                  }))
+                }
+              />
+              I will never share my OTP with anyone.
+            </label>
+          </div>
+        ) : null}
+
+        <div className="mt-auto">
+          <Button
+            type="submit"
+            variant={result.tier === "intervention" ? "danger" : "primary"}
+            disabled={!canVerify || otp.length !== 6}
+          >
+            Verify OTP
+          </Button>
+        </div>
+      </form>
     </>
   );
 }
