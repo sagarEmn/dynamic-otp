@@ -4,6 +4,32 @@
 
 ---
 
+## How This Plan Is Organized — The 5 Phases
+
+The build is split into **five phases**, each ending on a clear **exit criterion** — don't start the next phase until the current one's exit criterion is met. Phases are ordered by dependency *and* by demo priority: if time runs out, the earlier phases alone make a complete, demoable product.
+
+| Phase | Name | Steps | What it delivers | Exit criterion |
+|-------|------|-------|------------------|----------------|
+| **1** | The Brain & The Plumbing | 0–3 | Setup, phone frame, routing, RiskContext, and the tested risk engine | Engine returns the correct tier for demo scenarios A/B/C, every time |
+| **2** | The Flow Skeleton | 4–5 | Transaction form (+ sim panel) and the processing beat — the path *into* the OTP screen | Filling the form lands you on a 1.5s processing screen with a score in context |
+| **3** | The Core — OTP Screen, All Three Modes ⭐ | 6–7 | Stealth, Caution, and Intervention modes of the one OTP screen | Scenarios A/B/C each render the correct mode with the correct friction |
+| **4** | The Reinforcements | 8–11 | SMS popup, behavioral re-escalation, risk breakdown panel, success screen | Each tier shows a fact-specific SMS; pasting in Caution escalates live to Intervention |
+| **5** | The Product Story | 12 | Admin / risk-policy dashboard (internal eSewa-team tool) | Changing a weight slider changes how the same transaction is scored, live |
+
+**Where you win:** Phase 3 is the heart. Everything in Phases 1–2 is setup *for* it; everything in Phase 4 *reinforces* it. Phase 5 is genuinely optional — build it only after the core is polished and rehearsed.
+
+**The cutline:** a fully-working Phases 1–3 plus the SMS popup (first step of Phase 4) is a complete winning demo on its own. Everything after that makes the idea *undeniable*, not *present*.
+
+---
+
+# Phase 1 — The Brain & The Plumbing
+
+> **Steps 0–3.** Setup, phone frame, routing, RiskContext, and the tested risk engine. This is all foundation — no themed screens yet. The phase ends on the one non-negotiable gate: the engine must score the three demo scenarios into their correct tiers, every single time.
+>
+> **Exit criterion:** `scoreTransaction` returns Stealth for A (0), Caution for B (55), Intervention for C (90) — verified against the table in `spec-rules.md`. Do not start Phase 2 until this passes.
+
+---
+
 ## Tech Stack (final)
 
 | Concern | Choice | Why |
@@ -83,6 +109,16 @@ function scoreTransaction(input, config) {
 
 **Test it first:** run the three demo scenarios through it and confirm 0 → stealth, 55 → caution, 90 → intervention (the verification table in `spec-rules.md`). Do not proceed until this passes.
 
+> ✅ **Phase 1 exit criterion met** when this test passes. The brain works and is proven. Now build the screens around it.
+
+---
+
+# Phase 2 — The Flow Skeleton
+
+> **Steps 4–5.** The transaction form (with the simulation panel) and the 1.5s processing beat — the path that carries the user *into* the OTP screen. These are the supporting screens around the core; keep them faithful to eSewa but don't over-polish — the OTP screen in Phase 3 is where the hours belong.
+>
+> **Exit criterion:** filling the form and pressing Proceed lands you on the processing screen for 1.5s, with the score and fired signals already computed in RiskContext, then auto-advances to `/otp`.
+
 ---
 
 ## Step 4 — Screen 1: Transaction Form
@@ -106,6 +142,16 @@ function scoreTransaction(input, config) {
 - The score is already computed (Step 4), so this is purely for feel.
 
 **Done when:** it shows for 1.5s then auto-advances to the OTP screen.
+
+> ✅ **Phase 2 exit criterion met** when the form → processing → OTP path works end to end with a real score in context.
+
+---
+
+# Phase 3 — The Core: OTP Screen, All Three Modes ⭐
+
+> **Steps 6–7. This is where the project wins or loses.** The same screen renders in three completely different ways depending on tier — the direct answer to the habituation problem. Stealth first (get the clean baseline perfect), then Caution and Intervention. Spend most of your hours here.
+>
+> **Exit criterion:** demo scenarios A/B/C each render the correct mode — Stealth (clean), Caution (amber, acknowledge-to-proceed), Intervention (red takeover, timer + checkboxes + locked OTP) — with the correct friction in each.
 
 ---
 
@@ -131,6 +177,16 @@ function scoreTransaction(input, config) {
 - Build the **dynamic message** as a helper that turns `firedSignals` into readable sentences — one source of truth, reused by the banner and (later) the SMS.
 
 **Done when:** scenarios A/B/C each render the correct mode with the correct friction.
+
+> ✅ **Phase 3 exit criterion met** when all three modes render correctly for A/B/C. **This is the minimum winning demo** — everything from here strengthens it but is not required for a complete story.
+
+---
+
+# Phase 4 — The Reinforcements
+
+> **Steps 8–11.** Features that make the core *undeniable*: the SMS second layer, live behavioral re-escalation (the wow moment), the visible risk-breakdown math, and the success screen that closes the loop. Build in this order — the SMS popup is part of the cutline and comes first; behavioral re-escalation is the highest reward but also the riskiest to demo live (lead with paste detection, the reliable signal).
+>
+> **Exit criterion:** each tier produces a different, fact-specific SMS over the matching OTP screen; pasting into a Caution-tier OTP field visibly escalates the screen to Intervention; the breakdown panel shows the math; success closes the flow.
 
 ---
 
@@ -176,6 +232,16 @@ function scoreTransaction(input, config) {
 - Simple eSewa-green confirmation: transaction complete, amount, payee. Calm and done.
 - *(Stretch: if the user backs out of an Intervention, route to a "You may have avoided a scam" screen instead.)*
 
+> ✅ **Phase 4 exit criterion met** when the SMS, behavioral re-escalation, breakdown panel, and success screen all work. At this point the demo is fully reinforced — Phase 5 is pure upside.
+
+---
+
+# Phase 5 — The Product Story
+
+> **Step 12. Genuinely last, genuinely optional.** The admin dashboard reframes the project from "a demo" into "a configurable fraud-policy tool for the eSewa team." It is separate from the consumer payment flow and must look it. Build this **only after the core (Phases 1–4) is polished and rehearsed** — a buggy dashboard hurts more than a missing one.
+>
+> **Exit criterion:** changing a weight slider changes how the same sample transaction is scored, live in the test preview.
+
 ---
 
 ## Step 12 — Admin / Risk-Policy Dashboard (after core works)
@@ -191,17 +257,14 @@ function scoreTransaction(input, config) {
 
 ---
 
-## Build Order Summary (priority)
+## Build Order Summary (by phase)
 
-1. Setup → frame → routing  *(plumbing)*
-2. RiskContext → **risk engine (test against scenarios!)**  *(the brain)*
-3. Form → Processing  *(input + beat)*
-4. **OTP Stealth → Caution → Intervention**  *(the core — most hours here)*
-5. SMS popup  *(second layer)*
-6. Behavioral re-escalation  *(the wow)*
-7. Risk breakdown panel  *(credibility)*
-8. Success  *(close loop)*
-9. Admin dashboard  *(product story — only after core works)*
-10. Polish
+| Phase | Steps | Focus | Role |
+|-------|-------|-------|------|
+| **1 — Brain & Plumbing** | 0–3 | Setup → frame → routing → RiskContext → **risk engine (test against scenarios!)** | The brain — prove it before building screens |
+| **2 — Flow Skeleton** | 4–5 | Form → Processing | Input + the 1.5s beat |
+| **3 — Core OTP ⭐** | 6–7 | **Stealth → Caution → Intervention** | Where you win — most hours here |
+| **4 — Reinforcements** | 8–11 | SMS popup → behavioral re-escalation → breakdown panel → success | Make the core undeniable |
+| **5 — Product Story** | 12 | Admin dashboard | Configurable fraud-policy tool — only after core works |
 
-**Rule of thumb:** everything before Step 7 is setup; Steps 6–7 are where you win; Steps 10–12 are reinforcement. If time runs short, a fully-working core flow (Steps 0–8) beats a half-built dashboard every time.
+**Rule of thumb:** Phases 1–2 are setup; **Phase 3 is where you win**; Phase 4 is reinforcement; Phase 5 is upside. If time runs short, a fully-working **Phases 1–3 + the SMS popup** beats a half-built dashboard every time. Polish the core before you reach for Phase 5.
