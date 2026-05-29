@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useRisk } from "../context/RiskContext.jsx";
+import { useRisk } from "../context/useRisk.js";
 import ScreenHeader from "../components/ui/ScreenHeader.jsx";
 import Button from "../components/ui/Button.jsx";
 import Input, { Field } from "../components/ui/Input.jsx";

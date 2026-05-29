@@ -1,7 +1,7 @@
 // Phase 4 polishes this. Phase 1 placeholder closes the loop.
 import { useNavigate } from "react-router-dom";
 import { CheckCircle2 } from "lucide-react";
-import { useRisk } from "../context/RiskContext.jsx";
+import { useRisk } from "../context/useRisk.js";
 import Button from "../components/ui/Button.jsx";
 
 export default function Success() {

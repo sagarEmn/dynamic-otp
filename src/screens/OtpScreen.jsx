@@ -1,7 +1,7 @@
 // Phase 3 is the core — the three tier modes. Phase 1 placeholder shows the
 // computed tier so we can confirm the engine -> context→screen path works.
 import { useNavigate } from "react-router-dom";
-import { useRisk } from "../context/RiskContext.jsx";
+import { useRisk } from "../context/useRisk.js";
 import ScreenHeader from "../components/ui/ScreenHeader.jsx";
 import Banner from "../components/ui/Banner.jsx";
 import Button from "../components/ui/Button.jsx";
