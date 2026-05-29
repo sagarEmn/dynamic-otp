@@ -66,7 +66,7 @@ console.log("\nBehavioral re-escalation\n");
 
 console.log(
   failures === 0
-    ? "\n✅ ALL PASS — Phase 1 exit gate met.\n"
-    : `\n❌ ${failures} FAILURE(S) — do not proceed.\n`,
+    ? "\nALL PASS — Phase 1 exit gate met.\n"
+    : `\n${failures} FAILURE(S) — do not proceed.\n`,
 );
 process.exit(failures === 0 ? 0 : 1);
