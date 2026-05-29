@@ -2,22 +2,12 @@
 // signals, and the combined (re-escalated) result. The form writes; the
 // processing + OTP screens read. Plain Context + useState — no Redux needed.
 
-import { createContext, useContext, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { scoreTransaction, applyBehavioral } from "../lib/riskEngine.js";
+
 import { DEFAULT_CONFIG } from "../lib/riskConfig.js";
-
-const RiskContext = createContext(null);
-
-const EMPTY_TRANSACTION = {
-  payeeId: "",
-  payeeName: "",
-  amount: 0,
-  purpose: "",
-  remarks: "",
-  activeCall: false,
-  newDevice: false,
-  unusualLocation: false,
-};
+import { EMPTY_TRANSACTION } from "./riskConstants.js";
+import { RiskContext } from "./riskContextBase.js";
 
 export function RiskProvider({ children }) {
   // Admin dashboard (Phase 5) can override this later.
@@ -73,10 +63,4 @@ export function RiskProvider({ children }) {
   };
 
   return <RiskContext.Provider value={value}>{children}</RiskContext.Provider>;
-}
-
-export function useRisk() {
-  const ctx = useContext(RiskContext);
-  if (!ctx) throw new Error("useRisk must be used within <RiskProvider>");
-  return ctx;
 }
