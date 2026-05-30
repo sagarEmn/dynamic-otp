@@ -33,6 +33,7 @@ export default function OtpScreen() {
     if (!loadTimeRef.current) loadTimeRef.current = Date.now();
   }, []);
   const [acknowledged, setAcknowledged] = useState(false);
+  const [slowedAck, setSlowedAck] = useState(false); // extra "I slowed down" tick
   const [checks, setChecks] = useState({
     verifyReceiver: false,
     neverShareOtp: false,
@@ -75,6 +76,8 @@ export default function OtpScreen() {
   );
 
   const canVerify = (() => {
+    // The extra "I've slowed down" tick gates verification whenever it shows.
+    if (tooFastFired && !slowedAck) return false;
     if (result.tier === "caution") return acknowledged;
     if (result.tier === "intervention")
       return secondsLeft === 0 && checks.verifyReceiver && checks.neverShareOtp;
@@ -179,9 +182,7 @@ export default function OtpScreen() {
                 checked={acknowledged}
                 onChange={(event) => setAcknowledged(event.target.checked)}
               />
-              {tooFastFired
-                ? "I've slowed down and checked the recipient and amount myself."
-                : onActiveCall
+              {onActiveCall
                 ? "I have verified the recipient and amount, and no one on this call is telling me these digits."
                 : "I understand this payment is high risk and I want to continue."}
             </label>
@@ -223,6 +224,18 @@ export default function OtpScreen() {
                   : "I will never share my OTP with anyone."}
               </label>
             </div>
+          ) : null}
+
+          {tooFastFired ? (
+            <label className="flex items-start gap-3 text-sm">
+              <input
+                type="checkbox"
+                className={`mt-0.5 h-4 w-4 ${result.tier === "intervention" ? "accent-danger-accent" : "accent-caution-accent"}`}
+                checked={slowedAck}
+                onChange={(event) => setSlowedAck(event.target.checked)}
+              />
+              I've slowed down and checked the recipient and amount myself.
+            </label>
           ) : null}
 
           <Button
