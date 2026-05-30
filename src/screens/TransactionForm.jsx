@@ -73,14 +73,6 @@ export default function TransactionForm() {
             />
           </Field>
 
-          <Field label="Recipient name (optional)">
-            <Input
-              value={form.payeeName}
-              onChange={(event) => setField("payeeName", event.target.value)}
-              placeholder="Name"
-            />
-          </Field>
-
           <Field label="Amount">
             <Input
               type="number"
