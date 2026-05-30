@@ -236,6 +236,24 @@ function scoreTransaction(input, config) {
 
 ---
 
+# Phase 4.5 — Demo Experience
+
+> **Added during hackathon polish.** These are not core features but make the demo dramatically faster and clearer for judges. Built after Phase 4 was complete.
+
+## Step 11.5 — Scenario Control Panel + Form Improvements
+
+**Goal:** let a presenter trigger any demo scenario in one click without manually filling the form.
+
+- A **scenario panel** rendered *outside* the phone frame, floating to the right as a small card — does not take space inside the app UI.
+- Three buttons: **Scenario A** (green), **Scenario B** (amber), **Scenario C** (red) — each pre-fills the entire transaction form (payeeId, amount, toggles) and navigates to `/`.
+- Scenario data lives in `src/lib/scenarios.js` — single source of truth for both the panel and any future use.
+- **Pre-filled eSewa ID** — form defaults to `9801000001` (a known payee) so the field is never empty on load.
+- **Updated amount chips** — `50, 100, 1000, 5000, 40,000` replacing the old set to better match the demo scenarios.
+
+**Done when:** clicking a scenario card pre-fills the form and the correct tier renders after Proceed.
+
+---
+
 # Phase 5 — The Product Story
 
 > **Step 12. Genuinely last, genuinely optional.** The admin dashboard reframes the project from "a demo" into "a configurable fraud-policy tool for the eSewa team." It is separate from the consumer payment flow and must look it. Build this **only after the core (Phases 1–4) is polished and rehearsed** — a buggy dashboard hurts more than a missing one.
@@ -265,6 +283,7 @@ function scoreTransaction(input, config) {
 | **2 — Flow Skeleton** | 4–5 | Form → Processing | Input + the 1.5s beat |
 | **3 — Core OTP ⭐** | 6–7 | **Stealth → Caution → Intervention** | Where you win — most hours here |
 | **4 — Reinforcements** | 8–11 | SMS popup → behavioral re-escalation → breakdown panel → success | Make the core undeniable |
+| **4.5 — Demo Experience** | 11.5 | Scenario panel → pre-filled form → updated chips | One-click demo scenarios for judges |
 | **5 — Product Story** | 12 | Admin dashboard | Configurable fraud-policy tool — only after core works |
 
 **Rule of thumb:** Phases 1–2 are setup; **Phase 3 is where you win**; Phase 4 is reinforcement; Phase 5 is upside. If time runs short, a fully-working **Phases 1–3 + the SMS popup** beats a half-built dashboard every time. Polish the core before you reach for Phase 5.
