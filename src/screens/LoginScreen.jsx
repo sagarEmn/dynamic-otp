@@ -17,10 +17,12 @@ import { buildLoginSmsMessage } from "../lib/smsMessage.js";
 const DEMO_PASSWORD = "password";
 const DEMO_OTP = "123456";
 const INTERVENTION_TIMER_SECONDS = 10;
+// Average gap between digits (ms) that counts as "dictated" entry on a call.
+const SLOW_DICTATION_GAP_MS = 800;
 
 export default function LoginScreen() {
   const navigate = useNavigate();
-  const { simulation, runLoginScoring, loginResult } = useRisk();
+  const { simulation, runLoginScoring, loginResult, addBehavioral } = useRisk();
 
   const [esewaId, setEsewaId] = useState("9801000001");
   const [password, setPassword] = useState("");
@@ -33,7 +35,59 @@ export default function LoginScreen() {
   const [acknowledged, setAcknowledged] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(0);
 
+  // Behavioral-detection refs (mirror the transaction OTP screen).
+  const loadTimeRef = useRef(null);
+  const firstInputRef = useRef(null);
+  const entryStartRef = useRef(null);
+  const pasteRef = useRef(false);
+  const digitTimesRef = useRef([]);
+
   const tier = loginResult.tier;
+  const onActiveCall = loginResult.firedSignals.some((s) => s.id === "activeCall");
+  const tooFastFired = loginResult.firedSignals.some((s) => s.id === "tooFast");
+
+  // Mark when the OTP stage loads, for the no-pause detector.
+  useEffect(() => {
+    if (stage === "otp" && !loadTimeRef.current) loadTimeRef.current = Date.now();
+  }, [stage]);
+
+  // Behavioral detection on the login OTP input — ported from OtpScreen.
+  const onOtpChange = (nextValue) => {
+    const now = Date.now();
+    if (nextValue.length > otp.length) digitTimesRef.current.push(now);
+    setOtp(nextValue);
+    if (!firstInputRef.current) {
+      firstInputRef.current = now;
+      entryStartRef.current = now;
+      if (loadTimeRef.current && now - loadTimeRef.current < 2000) {
+        addBehavioral("noPause");
+      }
+    }
+    if (nextValue.length === 6 && entryStartRef.current) {
+      const duration = now - entryStartRef.current;
+      if (!pasteRef.current && duration < 1500) addBehavioral("tooFast");
+      const times = digitTimesRef.current;
+      if (!pasteRef.current && onActiveCall && times.length >= 6) {
+        const avgGap = (times[5] - times[0]) / 5;
+        if (avgGap >= SLOW_DICTATION_GAP_MS) addBehavioral("slowDictation");
+      }
+      pasteRef.current = false;
+    }
+    if (error) setError("");
+  };
+
+  const onOtpPaste = () => {
+    pasteRef.current = true;
+    const now = Date.now();
+    if (!firstInputRef.current) {
+      firstInputRef.current = now;
+      entryStartRef.current = now;
+      if (loadTimeRef.current && now - loadTimeRef.current < 2000) {
+        addBehavioral("noPause");
+      }
+    }
+    addBehavioral("paste");
+  };
 
   useEffect(() => {
     if (stage !== "otp" || tier !== "intervention") return;
@@ -171,7 +225,13 @@ export default function LoginScreen() {
             <label className="text-sm font-semibold text-esewa-textMuted px-1">
               Enter the login code sent to your phone
             </label>
-            <OtpInput value={otp} tier={tier} disabled={!canVerify} onChange={setOtp} />
+            <OtpInput
+              value={otp}
+              tier={tier}
+              disabled={!canVerify}
+              onChange={onOtpChange}
+              onPaste={onOtpPaste}
+            />
             {error ? <p className="text-xs text-danger-accent">{error}</p> : null}
           </div>
 
@@ -189,7 +249,9 @@ export default function LoginScreen() {
                 checked={acknowledged}
                 onChange={(e) => setAcknowledged(e.target.checked)}
               />
-              I am logging in myself and no one is guiding me to do this.
+              {tooFastFired
+                ? "I've slowed down and I'm logging in myself."
+                : "I am logging in myself and no one is guiding me to do this."}
             </label>
           ) : null}
         </div>

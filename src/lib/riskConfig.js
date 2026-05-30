@@ -44,6 +44,7 @@ export const DEFAULT_CONFIG = {
     paste: 20, // primary, reliable
     noPause: 15, // typing starts < 2s after screen load
     tooFast: 15, // 6 digits entered under ~1.5s
+    slowDictation: 25, // ~1s gaps between digits WHILE on a call (being dictated)
     tooManyAttempts: 20, // 3+ wrong OTP submissions
   },
 

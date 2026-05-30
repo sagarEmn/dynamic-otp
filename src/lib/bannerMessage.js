@@ -8,7 +8,7 @@ const SIGNAL_FRAGMENTS = {
 };
 
 const BEHAVIORAL_SIGNALS = new Set([
-  "paste", "noPause", "tooFast", "tooManyAttempts",
+  "paste", "noPause", "tooFast", "slowDictation", "tooManyAttempts",
 ]);
 
 export function buildBannerMessage(tier, firedSignals) {
@@ -17,9 +17,21 @@ export function buildBannerMessage(tier, firedSignals) {
   const preOtp = firedSignals.filter((s) => !BEHAVIORAL_SIGNALS.has(s.id));
   const behavioral = firedSignals.filter((s) => BEHAVIORAL_SIGNALS.has(s.id));
 
-  const hasBehavioral = behavioral.length > 0;
+  const behavioralIds = new Set(behavioral.map((s) => s.id));
 
-  if (hasBehavioral) {
+  // The slow, dictated-entry pattern (1s gaps while on a call) is the strongest
+  // "someone is reading you the code" tell — call it out directly.
+  if (behavioralIds.has("slowDictation")) {
+    return "Suspicious behaviour detected. If someone is guiding you to enter this OTP, stop now and end the call.";
+  }
+
+  // Superhuman speed gets its own gentle, specific nudge.
+  if (behavioralIds.has("tooFast")) {
+    return "You're going too fast — slow down and check the recipient and amount.";
+  }
+
+  // Any other behavioral signal (paste, noPause, too many attempts).
+  if (behavioral.length > 0) {
     return "Suspicious behaviour detected. If someone is guiding you to enter this OTP, stop now and end the call.";
   }
 

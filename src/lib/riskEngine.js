@@ -21,6 +21,7 @@ export const SIGNAL_LABELS = {
   paste: "OTP pasted (not typed)",
   noPause: "No pause to read warning",
   tooFast: "Superhuman typing speed",
+  slowDictation: "Slow, dictated entry during a call",
   tooManyAttempts: "Too many incorrect attempts",
 };
 

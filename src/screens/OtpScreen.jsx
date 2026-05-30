@@ -12,6 +12,8 @@ import { buildBannerMessage } from "../lib/bannerMessage.js";
 
 const DEMO_OTP = "123456";
 const INTERVENTION_TIMER_SECONDS = 10;
+// Average gap between digits (ms) that counts as "dictated" entry on a call.
+const SLOW_DICTATION_GAP_MS = 800;
 
 export default function OtpScreen() {
   const navigate = useNavigate();
@@ -23,6 +25,9 @@ export default function OtpScreen() {
   const entryStartRef = useRef(null);
   const pasteRef = useRef(false);
   const attemptsRef = useRef(0);
+  // Timestamp of each digit as it's typed — used to detect the slow, dictated
+  // entry pattern (≈1s gaps between digits while on a call).
+  const digitTimesRef = useRef([]);
 
   useEffect(() => {
     if (!loadTimeRef.current) loadTimeRef.current = Date.now();
@@ -56,6 +61,7 @@ export default function OtpScreen() {
   // When an active call fired, the live fraud is someone coaching the user ON
   // the call — so the acknowledgement asks them to assert that no one is.
   const onActiveCall = result.firedSignals.some((s) => s.id === "activeCall");
+  const tooFastFired = result.firedSignals.some((s) => s.id === "tooFast");
 
   const smsMessage = useMemo(
     () =>
@@ -115,9 +121,14 @@ export default function OtpScreen() {
               tier={result.tier}
               disabled={!canVerify}
               onChange={(nextValue) => {
+                const now = Date.now();
+                // Record a timestamp each time a new digit is added (typing,
+                // not deleting), for the slow-dictation gap measurement.
+                if (nextValue.length > otp.length) {
+                  digitTimesRef.current.push(now);
+                }
                 setOtp(nextValue);
                 if (!firstInputRef.current) {
-                  const now = Date.now();
                   firstInputRef.current = now;
                   entryStartRef.current = now;
                   if (now - loadTimeRef.current < 2000) {
@@ -125,9 +136,18 @@ export default function OtpScreen() {
                   }
                 }
                 if (nextValue.length === 6 && entryStartRef.current) {
-                  const duration = Date.now() - entryStartRef.current;
+                  const duration = now - entryStartRef.current;
                   if (!pasteRef.current && duration < 1500) {
                     addBehavioral("tooFast");
+                  }
+                  // Slow, dictated entry: ~1s gaps between digits WHILE on an
+                  // active call — the "scammer reading the code" pattern.
+                  const times = digitTimesRef.current;
+                  if (!pasteRef.current && onActiveCall && times.length >= 6) {
+                    const avgGap = (times[5] - times[0]) / 5;
+                    if (avgGap >= SLOW_DICTATION_GAP_MS) {
+                      addBehavioral("slowDictation");
+                    }
                   }
                   pasteRef.current = false;
                 }
@@ -159,8 +179,10 @@ export default function OtpScreen() {
                 checked={acknowledged}
                 onChange={(event) => setAcknowledged(event.target.checked)}
               />
-              {onActiveCall
-                ? "No one on this call is guiding me to enter this OTP — I'm doing this myself."
+              {tooFastFired
+                ? "I've slowed down and checked the recipient and amount myself."
+                : onActiveCall
+                ? "I have verified the recipient and amount, and no one on this call is telling me these digits."
                 : "I understand this payment is high risk and I want to continue."}
             </label>
           ) : null}

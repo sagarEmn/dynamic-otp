@@ -23,6 +23,7 @@ const BEHAVIORAL_WEIGHTS = [
   { key: "paste",            label: "Paste OTP",        max: 40 },
   { key: "noPause",          label: "No pause",         max: 30 },
   { key: "tooFast",          label: "Too fast",         max: 30 },
+  { key: "slowDictation",    label: "Slow / dictated",  max: 40 },
   { key: "tooManyAttempts",  label: "Many attempts",    max: 40 },
 ];
 

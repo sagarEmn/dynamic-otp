@@ -78,6 +78,7 @@ export function RiskProvider({ children }) {
     (input) => {
       const captured = { ...input, now: new Date() };
       setLoginInput(captured);
+      setBehavioralIds([]); // fresh run — drop any prior behavioral signals
       return scoreLogin(captured, config);
     },
     [config],
@@ -125,15 +126,23 @@ export function RiskProvider({ children }) {
     [baseResult, behavioralIds, config],
   );
 
-  // Derived login result — re-scores whenever the captured input OR the live
-  // config (weights/thresholds) changes. This is what makes a weight slider
-  // escalate the login OTP screen live during the demo.
-  const loginResult = useMemo(
+  // Derived login base result — re-scores whenever the captured input OR the
+  // live config (weights/thresholds) changes. This is what makes a weight
+  // slider escalate the login OTP screen live during the demo.
+  const loginBaseResult = useMemo(
     () =>
       loginInput
         ? scoreLogin(loginInput, config)
         : { score: 0, firedSignals: [], tier: "stealth" },
     [loginInput, config],
+  );
+
+  // Combined login result = base + behavioral, re-tiered — mirrors the
+  // transaction `result`, so typing behavior (too fast / slow dictation /
+  // paste) escalates the login OTP screen live too.
+  const loginResult = useMemo(
+    () => applyBehavioral(loginBaseResult, behavioralIds, config),
+    [loginBaseResult, behavioralIds, config],
   );
 
   const value = useMemo(
