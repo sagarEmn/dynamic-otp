@@ -7,6 +7,7 @@ import Banner from "../components/ui/Banner.jsx";
 import Button from "../components/ui/Button.jsx";
 import SmsPopup from "../components/ui/SmsPopup.jsx";
 import RiskBreakdown from "../components/ui/RiskBreakdown.jsx";
+import OtpInput from "../components/ui/OtpInput.jsx";
 import { buildSmsMessage } from "../lib/smsMessage.js";
 
 const DEMO_OTP = "123456";
@@ -109,20 +110,15 @@ export default function OtpScreen() {
             tier={result.tier}
           />
 
-          <div className="flex flex-col gap-2">
-            <label className="text-xs text-esewa-textMuted">
+          <div className="flex flex-col gap-3">
+            <label className="text-sm font-semibold text-esewa-textMuted">
               Enter 6-digit OTP
             </label>
-            <input
-              className={`w-full rounded-lg px-3 py-3 text-center text-lg tracking-[0.6em] bg-white text-esewa-text border border-esewa-border outline-none focus:border-esewa-green focus:ring-1 focus:ring-esewa-green ${
-                result.tier === "intervention" ? "opacity-90" : ""
-              }`}
-              inputMode="numeric"
-              maxLength={6}
+            <OtpInput
               value={otp}
+              tier={result.tier}
               disabled={!canVerify}
-              onChange={(event) => {
-                const nextValue = event.target.value.replace(/\D/g, "");
+              onChange={(nextValue) => {
                 setOtp(nextValue);
                 if (!firstInputRef.current) {
                   const now = Date.now();
@@ -153,7 +149,6 @@ export default function OtpScreen() {
                 }
                 addBehavioral("paste");
               }}
-              placeholder="••••••"
             />
             {error ? (
               <p className="text-xs text-danger-accent">{error}</p>

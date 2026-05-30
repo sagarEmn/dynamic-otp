@@ -4,13 +4,13 @@ export default function SmsPopup({ message }) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 800);
+    const t = setTimeout(() => setVisible(true), 1500);
     return () => clearTimeout(t);
   }, []);
 
   return (
     <div
-      className={`pointer-events-none absolute left-3 right-3 top-3 transition-all duration-500 ease-out ${
+      className={`pointer-events-none absolute left-3 right-3 top-3 transition-all duration-600 ease-out ${
         visible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
       }`}
     >
