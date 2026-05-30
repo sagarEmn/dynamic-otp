@@ -13,8 +13,8 @@ export default function PhoneFrame() {
     <div className="min-h-screen bg-gray-100 flex items-start justify-between px-6 py-8 gap-4">
 
       {/* Scenario panel — left */}
-      <div className="flex flex-col gap-3 w-48 shrink-0">
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Demo scenarios</p>
+      <div className="flex flex-col gap-3 w-64 shrink-0">
+        <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Demo scenarios</p>
         {SCENARIOS.map((scenario) => (
           <button
             key={scenario.label}
@@ -23,9 +23,9 @@ export default function PhoneFrame() {
             style={{ borderColor: scenario.accentColor, color: scenario.accentColor }}
             className="w-full rounded-xl border-2 bg-white px-3 py-3 text-left transition-all hover:shadow-md"
           >
-            <p className="text-sm font-bold">{scenario.label}</p>
-            <p className="text-xs font-semibold opacity-70">{scenario.sublabel}</p>
-            <p className="text-[11px] text-gray-400 font-normal mt-1">{scenario.description}</p>
+            <p className="text-base font-bold">{scenario.label}</p>
+            <p className="text-sm font-semibold opacity-70">{scenario.sublabel}</p>
+            <p className="text-xs text-gray-400 font-normal mt-1">{scenario.description}</p>
           </button>
         ))}
       </div>

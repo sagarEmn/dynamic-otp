@@ -21,8 +21,8 @@ function WeightRow({ label, value, max, onChange }) {
   return (
     <div className="flex flex-col gap-0.5">
       <div className="flex justify-between text-[11px]">
-        <span className="text-esewa-textMuted font-medium">{label}</span>
-        <span className="font-bold text-esewa-green">{value}</span>
+        <span className="text-sm text-esewa-textMuted font-medium">{label}</span>
+        <span className="text-sm font-bold text-esewa-green">{value}</span>
       </div>
       <input
         type="range"
@@ -40,7 +40,7 @@ function WeightRow({ label, value, max, onChange }) {
 function Section({ title, children }) {
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-[10px] font-bold uppercase tracking-widest text-esewa-textMuted">{title}</p>
+      <p className="text-xs font-bold uppercase tracking-widest text-esewa-textMuted">{title}</p>
       {children}
     </div>
   );
@@ -50,8 +50,8 @@ export default function AdminPanel() {
   const { config, updateWeight } = useRisk();
 
   return (
-    <div className="flex flex-col gap-3 w-56 shrink-0">
-      <p className="text-xs font-bold text-esewa-green uppercase tracking-widest">Risk weights</p>
+    <div className="flex flex-col gap-3 w-72 shrink-0">
+      <p className="text-sm font-bold text-esewa-green uppercase tracking-widest">Risk weights</p>
 
       <div className="bg-white rounded-xl shadow-card border border-esewa-border px-4 py-4 flex flex-col gap-5 max-h-[820px] overflow-y-auto">
         <Section title="Signals">
@@ -81,8 +81,8 @@ export default function AdminPanel() {
         <Section title="Thresholds">
           <div className="flex flex-col gap-0.5">
             <div className="flex justify-between text-[11px]">
-              <span className="text-esewa-textMuted font-medium">Caution ≥</span>
-              <span className="font-bold text-caution-accent">{config.tiers.cautionMin}</span>
+              <span className="text-sm text-esewa-textMuted font-medium">Caution ≥</span>
+              <span className="text-sm font-bold text-caution-accent">{config.tiers.cautionMin}</span>
             </div>
             <input
               type="range" min={10} max={80} step={5}
@@ -93,8 +93,8 @@ export default function AdminPanel() {
           </div>
           <div className="flex flex-col gap-0.5">
             <div className="flex justify-between text-[11px]">
-              <span className="text-esewa-textMuted font-medium">Intervention ≥</span>
-              <span className="font-bold text-danger-accent">{config.tiers.interventionMin}</span>
+              <span className="text-sm text-esewa-textMuted font-medium">Intervention ≥</span>
+              <span className="text-sm font-bold text-danger-accent">{config.tiers.interventionMin}</span>
             </div>
             <input
               type="range" min={30} max={120} step={5}
