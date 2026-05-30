@@ -3,6 +3,10 @@ const formatAmount = (amount) => {
   return value.toLocaleString("en-IN");
 };
 
+// Illustrative city for the "unusual location" clause. In a real system this
+// would come from IP/geo lookup; here it's a fixed demo value — swap freely.
+const DETECTED_CITY = "Dhulikhel";
+
 // Build a short "where from" clause from the ORIGIN signals only (new device,
 // unusual location) — the ones that tell the user where the attempt is coming
 // from. We deliberately leave out the call/behavioral signals (the on-screen
@@ -12,10 +16,11 @@ const originClause = (firedSignals = []) => {
   const has = (id) => firedSignals.some((s) => s.id === id);
   const newDevice = has("newDevice");
   const unusualLocation = has("unusualLocation");
+  const location = `an unusual location (${DETECTED_CITY})`;
 
-  if (newDevice && unusualLocation) return " from a new device in an unusual location";
+  if (newDevice && unusualLocation) return ` from a new device in ${location}`;
   if (newDevice) return " from a new device";
-  if (unusualLocation) return " from an unusual location";
+  if (unusualLocation) return ` from ${location}`;
   return "";
 };
 
