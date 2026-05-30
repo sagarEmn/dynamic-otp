@@ -5,6 +5,8 @@ import { useRisk } from "../context/useRisk.js";
 import ScreenHeader from "../components/ui/ScreenHeader.jsx";
 import Banner from "../components/ui/Banner.jsx";
 import Button from "../components/ui/Button.jsx";
+import SmsPopup from "../components/ui/SmsPopup.jsx";
+import { buildSmsMessage } from "../lib/smsMessage.js";
 
 const DEMO_OTP = "123456";
 const INTERVENTION_TIMER_SECONDS = 10;
@@ -42,6 +44,17 @@ export default function OtpScreen() {
     [result.firedSignals],
   );
 
+  const smsMessage = useMemo(
+    () =>
+      buildSmsMessage({
+        tier: result.tier,
+        transaction: result.transaction,
+        firedSignals: result.firedSignals,
+        otp: DEMO_OTP,
+      }),
+    [result.tier, result.transaction, result.firedSignals],
+  );
+
   const canVerify = (() => {
     if (result.tier === "caution") return acknowledged;
     if (result.tier === "intervention")
@@ -67,85 +80,88 @@ export default function OtpScreen() {
       />
       <form
         onSubmit={onSubmit}
-        className={`flex-1 px-5 py-6 flex flex-col gap-5 ${
+        className={`flex-1 px-5 py-6 flex flex-col gap-5 relative ${
           result.tier === "intervention" ? "bg-danger-bg text-white" : ""
         }`}
       >
-        <Banner tone={result.tier}>
-          {result.tier === "stealth" && "Never share your OTP with anyone."}
-          {result.tier !== "stealth" && signalSummary}
-        </Banner>
+        <SmsPopup message={smsMessage} />
+        <div className="flex-1 flex flex-col justify-center gap-5">
+          <Banner tone={result.tier}>
+            {result.tier === "stealth" && "Never share your OTP with anyone."}
+            {result.tier !== "stealth" && signalSummary}
+          </Banner>
 
-        <div className="flex flex-col gap-2">
-          <label className="text-xs text-esewa-textMuted">
-            Enter 6-digit OTP
-          </label>
-          <input
-            className={`w-full rounded-lg px-3 py-3 text-center text-lg tracking-[0.6em] bg-white text-esewa-text border border-esewa-border outline-none focus:border-esewa-green focus:ring-1 focus:ring-esewa-green ${
-              result.tier === "intervention" ? "opacity-90" : ""
-            }`}
-            inputMode="numeric"
-            maxLength={6}
-            value={otp}
-            disabled={!canVerify}
-            onChange={(event) => {
-              setOtp(event.target.value.replace(/\D/g, ""));
-              if (error) setError("");
-            }}
-            placeholder="••••••"
-          />
-          {error ? <p className="text-xs text-danger-accent">{error}</p> : null}
-        </div>
-
-        {result.tier === "caution" ? (
-          <label className="flex items-start gap-3 text-sm">
+          <div className="flex flex-col gap-2">
+            <label className="text-xs text-esewa-textMuted">
+              Enter 6-digit OTP
+            </label>
             <input
-              type="checkbox"
-              className="mt-0.5 h-4 w-4 accent-caution-accent"
-              checked={acknowledged}
-              onChange={(event) => setAcknowledged(event.target.checked)}
+              className={`w-full rounded-lg px-3 py-3 text-center text-lg tracking-[0.6em] bg-white text-esewa-text border border-esewa-border outline-none focus:border-esewa-green focus:ring-1 focus:ring-esewa-green ${
+                result.tier === "intervention" ? "opacity-90" : ""
+              }`}
+              inputMode="numeric"
+              maxLength={6}
+              value={otp}
+              disabled={!canVerify}
+              onChange={(event) => {
+                setOtp(event.target.value.replace(/\D/g, ""));
+                if (error) setError("");
+              }}
+              placeholder="••••••"
             />
-            I understand this payment is high risk and I want to continue.
-          </label>
-        ) : null}
-
-        {result.tier === "intervention" ? (
-          <div className="flex flex-col gap-3 text-sm">
-            <p className="text-danger-accent font-semibold">
-              Hold on {secondsLeft}s — review before entering OTP.
-            </p>
-            <label className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                className="mt-0.5 h-4 w-4 accent-danger-accent"
-                checked={checks.verifyReceiver}
-                onChange={(event) =>
-                  setChecks((prev) => ({
-                    ...prev,
-                    verifyReceiver: event.target.checked,
-                  }))
-                }
-              />
-              I have verified the recipient and amount are correct.
-            </label>
-            <label className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                className="mt-0.5 h-4 w-4 accent-danger-accent"
-                checked={checks.neverShareOtp}
-                onChange={(event) =>
-                  setChecks((prev) => ({
-                    ...prev,
-                    neverShareOtp: event.target.checked,
-                  }))
-                }
-              />
-              I will never share my OTP with anyone.
-            </label>
+            {error ? (
+              <p className="text-xs text-danger-accent">{error}</p>
+            ) : null}
           </div>
-        ) : null}
 
-        <div className="mt-auto">
+          {result.tier === "caution" ? (
+            <label className="flex items-start gap-3 text-sm">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 accent-caution-accent"
+                checked={acknowledged}
+                onChange={(event) => setAcknowledged(event.target.checked)}
+              />
+              I understand this payment is high risk and I want to continue.
+            </label>
+          ) : null}
+
+          {result.tier === "intervention" ? (
+            <div className="flex flex-col gap-3 text-sm">
+              <p className="text-danger-accent font-semibold">
+                Hold on {secondsLeft}s — review before entering OTP.
+              </p>
+              <label className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 accent-danger-accent"
+                  checked={checks.verifyReceiver}
+                  onChange={(event) =>
+                    setChecks((prev) => ({
+                      ...prev,
+                      verifyReceiver: event.target.checked,
+                    }))
+                  }
+                />
+                I have verified the recipient and amount are correct.
+              </label>
+              <label className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 accent-danger-accent"
+                  checked={checks.neverShareOtp}
+                  onChange={(event) =>
+                    setChecks((prev) => ({
+                      ...prev,
+                      neverShareOtp: event.target.checked,
+                    }))
+                  }
+                />
+                I will never share my OTP with anyone.
+              </label>
+            </div>
+          ) : null}
+
           <Button
             type="submit"
             variant={result.tier === "intervention" ? "danger" : "primary"}
