@@ -38,6 +38,10 @@ export default function OtpScreen() {
 
   useEffect(() => {
     if (result.tier !== "intervention") return;
+    // Reset the countdown when intervention becomes active — covers LIVE
+    // escalation (caution → intervention via slider/toggle), where the screen
+    // mounted in a lower tier with secondsLeft already at 0.
+    setSecondsLeft(INTERVENTION_TIMER_SECONDS);
     const timer = setInterval(() => {
       setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
