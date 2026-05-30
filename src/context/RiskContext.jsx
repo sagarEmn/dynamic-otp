@@ -26,6 +26,7 @@ export function RiskProvider({ children }) {
     newDevice: false,
     unusualLocation: false,
     unusualTime: false,
+    failedAttempts: false, // login-only — drives the failed-password signal
   });
 
   const toggleSimulation = useCallback((key) => {
@@ -91,6 +92,7 @@ export function RiskProvider({ children }) {
       newDevice: false,
       unusualLocation: false,
       unusualTime: false,
+      failedAttempts: false,
     });
   }, []);
 

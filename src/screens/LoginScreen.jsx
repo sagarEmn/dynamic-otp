@@ -69,11 +69,12 @@ export default function LoginScreen() {
     }
 
     setError("");
-    // Score the login context. failedAttempts fires if the user fumbled the
-    // password 2+ times before getting in — a classic takeover signal.
+    // Score the login context. failedAttempts fires if a scenario preset set
+    // it, OR the user fumbled the password 2+ times before getting in — a
+    // classic account-takeover signal.
     const result = runLoginScoring({
       ...simulation,
-      failedAttempts: failedRef.current >= 2,
+      failedAttempts: simulation.failedAttempts || failedRef.current >= 2,
     });
 
     if (result.tier === "stealth") {

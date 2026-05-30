@@ -1,12 +1,22 @@
 import { useRisk } from "../context/useRisk.js";
 
-const SIGNAL_WEIGHTS = [
+// Transaction-only (amount-based) weights.
+const AMOUNT_WEIGHTS = [
   { key: "highValue",        label: "High value",       max: 50 },
   { key: "veryHighValue",    label: "Very high value",  max: 30 },
+];
+
+// Environmental weights — shared by both authentication phases.
+const ENV_WEIGHTS = [
   { key: "activeCall",       label: "Active call",      max: 50 },
   { key: "newDevice",        label: "New device",       max: 50 },
   { key: "unusualLocation",  label: "Unusual location", max: 50 },
   { key: "unusualTime",      label: "Unusual time",     max: 30 },
+];
+
+// Login-only weight.
+const LOGIN_WEIGHTS = [
+  { key: "failedAttempts",   label: "Failed passwords", max: 50 },
 ];
 
 const BEHAVIORAL_WEIGHTS = [
@@ -45,22 +55,40 @@ function Section({ title, children }) {
   );
 }
 
-export default function AdminPanel() {
+export default function AdminPanel({ isLogin = false }) {
   const { config, updateWeight } = useRisk();
+
+  // Phase-aware: login hides amount weights and shows the failed-password
+  // weight; transaction shows amount weights. Environmental is shared.
+  const signalWeights = isLogin
+    ? [...ENV_WEIGHTS, ...LOGIN_WEIGHTS]
+    : [...AMOUNT_WEIGHTS, ...ENV_WEIGHTS];
 
   return (
     <div className="flex flex-col gap-3 w-72 shrink-0">
-      <p className="text-sm font-bold text-esewa-green uppercase tracking-widest">Risk weights</p>
+      <p className="text-sm font-bold text-esewa-green uppercase tracking-widest">
+        Risk weights · {isLogin ? "Login" : "Transaction"}
+      </p>
 
       <div className="bg-white rounded-xl shadow-card border border-esewa-border px-4 py-4 flex flex-col gap-5 max-h-[820px] overflow-y-auto">
         <Section title="Signals">
-          {SIGNAL_WEIGHTS.map(({ key, label, max }) => (
+          {signalWeights.map(({ key, label, max }) => (
             <WeightRow
               key={key}
               label={label}
-              value={config.weights[key]}
+              value={
+                key === "failedAttempts"
+                  ? config.loginWeights[key]
+                  : config.weights[key]
+              }
               max={max}
-              onChange={(val) => updateWeight("weights", key, val)}
+              onChange={(val) =>
+                updateWeight(
+                  key === "failedAttempts" ? "loginWeights" : "weights",
+                  key,
+                  val,
+                )
+              }
             />
           ))}
         </Section>
