@@ -1,0 +1,47 @@
+export const SCENARIOS = [
+  {
+    label: "Scenario A",
+    sublabel: "Stealth",
+    description: "Rs. 500, known payee, no call",
+    accentColor: "#60bb46",
+    form: {
+      payeeId: "9801000001",
+      amount: "500",
+      purpose: "Family",
+      remarks: "",
+      activeCall: false,
+      newDevice: false,
+      unusualLocation: false,
+    },
+  },
+  {
+    label: "Scenario B",
+    sublabel: "Caution",
+    description: "Rs. 25,000, new payee, no call",
+    accentColor: "#e69c1a",
+    form: {
+      payeeId: "9899999999",
+      amount: "25000",
+      purpose: "Other",
+      remarks: "",
+      activeCall: false,
+      newDevice: false,
+      unusualLocation: false,
+    },
+  },
+  {
+    label: "Scenario C",
+    sublabel: "Intervention",
+    description: "Rs. 50,000, new payee, active call",
+    accentColor: "#e53935",
+    form: {
+      payeeId: "9899999999",
+      amount: "50000",
+      purpose: "Other",
+      remarks: "",
+      activeCall: true,
+      newDevice: false,
+      unusualLocation: false,
+    },
+  },
+];
