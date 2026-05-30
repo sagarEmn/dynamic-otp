@@ -1,8 +1,5 @@
-// Light surface, thin border, green focus ring. Pair with <Label>.
-// See documentation/design-system.md > Core Components.
-
 export const Label = ({ children, className = "" }) => (
-  <label className={`text-xs text-esewa-textMuted ${className}`}>
+  <label className={`text-sm font-semibold text-esewa-text ${className}`}>
     {children}
   </label>
 );
@@ -10,18 +7,19 @@ export const Label = ({ children, className = "" }) => (
 const Input = ({ className = "", ...props }) => (
   <input
     className={[
-      "w-full rounded-lg bg-esewa-surface border border-esewa-border",
-      "px-3 py-2.5 text-sm outline-none",
-      "focus:border-esewa-green focus:ring-1 focus:ring-esewa-green",
+      "w-full rounded-lg bg-esewa-inputBg border border-esewa-border",
+      "px-4 py-3 text-base font-medium text-esewa-text outline-none",
+      "placeholder:text-esewa-textLight placeholder:font-normal",
+      "focus:border-esewa-green focus:ring-2 focus:ring-esewa-green/20",
+      "transition-shadow duration-150",
       className,
     ].join(" ")}
     {...props}
   />
 );
 
-// A label + input stacked, the standard form field.
 export const Field = ({ label, children }) => (
-  <div className="flex flex-col gap-1.5">
+  <div className="flex flex-col gap-2">
     <Label>{label}</Label>
     {children}
   </div>

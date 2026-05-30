@@ -1,10 +1,7 @@
-// Full-width, solid, bold. The ONLY button in the app — never style a
-// <button> inline on a screen. Add a variant here if you need a new look.
-// See documentation/design-system.md > Core Components.
-
 const VARIANTS = {
-  primary: "bg-esewa-green text-white hover:bg-esewa-greenAlt",
-  danger: "bg-danger-accent text-white hover:opacity-90",
+  primary: "bg-esewa-green text-white hover:bg-esewa-greenDark active:bg-esewa-greenDark",
+  danger:  "bg-danger-accent text-white hover:opacity-90 active:opacity-80",
+  ghost:   "bg-transparent text-esewa-green border border-esewa-green hover:bg-esewa-surface",
 };
 
 export default function Button({
@@ -18,9 +15,10 @@ export default function Button({
     <button
       disabled={disabled}
       className={[
-        "w-full rounded-lg text-sm font-semibold py-3 transition-colors",
+        "w-full rounded-lg text-base font-bold py-4 px-6",
+        "transition-colors duration-150 tracking-wide",
         VARIANTS[variant] ?? VARIANTS.primary,
-        disabled ? "opacity-50 cursor-not-allowed" : "",
+        disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer",
         className,
       ].join(" ")}
       {...props}

@@ -14,7 +14,7 @@ export default function SmsPopup({ message }) {
         visible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
       }`}
     >
-      <div className="pointer-events-none rounded-xl border border-esewa-border bg-white shadow-lg p-4">
+      <div className="pointer-events-none rounded-xl border border-esewa-border bg-white shadow-popup p-4">
         <div className="flex items-center justify-between text-[11px] text-esewa-textMuted">
           <span className="font-semibold text-esewa-green">eSewa</span>
           <span>now</span>

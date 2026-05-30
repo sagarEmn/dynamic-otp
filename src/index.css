@@ -1,32 +1,68 @@
 @import "tailwindcss";
 
 /*
-  eSewa design tokens — see documentation/design-system.md.
-  Tailwind v4 reads these from @theme. Each token below becomes a utility
-  class (e.g. --color-esewa-green -> bg-esewa-green / text-esewa-green).
-  Keep names exact: components depend on them.
+  eSewa design tokens — single source of truth for the entire UI.
+  Tailwind v4 reads from @theme and generates utility classes automatically.
+  To restyle the whole app, change a value here — not in components.
+
+  Naming convention:
+    --color-<palette>-<role>   e.g. esewa-green, caution-accent
+    --font-*                   typeface + scale
+    --radius-*                 corner rounding
+    --shadow-*                 elevation levels
 */
 @theme {
+  /* ── Typography ─────────────────────────────────────────── */
   --font-sans: "Poppins", "Inter", ui-sans-serif, system-ui, sans-serif;
 
-  /* eSewa brand (Stealth baseline = normal eSewa) */
-  --color-esewa-green: #60bb46;
-  --color-esewa-greenAlt: #5fb246;
-  --color-esewa-dark: #1a5632;
-  --color-esewa-surface: #f5f7f5;
-  --color-esewa-border: #e2e6e2;
-  --color-esewa-text: #1f2421;
-  --color-esewa-textMuted: #7a8579;
+  /* Scale: use these instead of arbitrary text-[Xpx] */
+  --text-xs:   0.75rem;   /* 12px — captions, helper text      */
+  --text-sm:   0.875rem;  /* 14px — labels, secondary body     */
+  --text-base: 1rem;      /* 16px — primary body, inputs       */
+  --text-lg:   1.125rem;  /* 18px — screen titles              */
+  --text-xl:   1.25rem;   /* 20px — hero amounts               */
+  --text-2xl:  1.5rem;    /* 24px — success amount display     */
 
-  /* Caution tier (amber) */
-  --color-caution-accent: #f5a623;
-  --color-caution-bg: #fff8e1;
-  --color-caution-text: #8a6d1a;
+  /* Weight scale */
+  --font-weight-normal:    400;
+  --font-weight-medium:    500;  /* body text, input values       */
+  --font-weight-semibold:  600;  /* labels, section headers       */
+  --font-weight-bold:      700;  /* button CTAs, screen titles    */
 
-  /* Intervention tier (red / dark) */
-  --color-danger-accent: #d32f2f;
-  --color-danger-bg: #1a0e0e;
-  --color-danger-surface: #2a1212;
+  /* ── eSewa brand palette (Stealth baseline) ─────────────── */
+  --color-esewa-green:      #60bb46;  /* primary action, header bg  */
+  --color-esewa-greenDark:  #4a9934;  /* hover state for green      */
+  --color-esewa-dark:       #1a5632;  /* deep brand dark            */
+  --color-esewa-surface:    #f5f7f5;  /* page / screen background   */
+  --color-esewa-inputBg:    #ffffff;  /* input field background     */
+  --color-esewa-border:     #dde3dd;  /* input + card borders       */
+  --color-esewa-divider:    #eef0ee;  /* subtle separators          */
+  --color-esewa-text:       #1a1f1a;  /* primary text               */
+  --color-esewa-textMuted:  #6b7a6b;  /* secondary / helper text    */
+  --color-esewa-textLight:  #9eaa9e;  /* placeholder, disabled      */
+
+  /* ── Caution tier (amber) ───────────────────────────────── */
+  --color-caution-accent:   #e69c1a;
+  --color-caution-bg:       #fffbf0;
+  --color-caution-border:   #f5d98a;
+  --color-caution-text:     #7a5c10;
+
+  /* ── Intervention tier (red / dark) ─────────────────────── */
+  --color-danger-accent:    #e53935;
+  --color-danger-bg:        #180e0e;
+  --color-danger-surface:   #271414;
+  --color-danger-border:    #5c1f1f;
+  --color-danger-text:      #ffcdd2;
+
+  /* ── Shape ───────────────────────────────────────────────── */
+  --radius-sm:  0.5rem;   /* 8px  — chips, badges              */
+  --radius-md:  0.75rem;  /* 12px — inputs, small cards        */
+  --radius-lg:  1rem;     /* 16px — cards, panels              */
+  --radius-xl:  1.5rem;   /* 24px — phone frame, large cards   */
+
+  /* ── Elevation ───────────────────────────────────────────── */
+  --shadow-card:   0 1px 4px 0 rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
+  --shadow-popup:  0 4px 16px 0 rgba(0,0,0,0.14);
 }
 
 html,
@@ -38,5 +74,7 @@ body,
 body {
   margin: 0;
   font-family: var(--font-sans);
+  font-weight: 500; /* medium as the baseline — matches real eSewa */
   color: var(--color-esewa-text);
+  -webkit-font-smoothing: antialiased;
 }

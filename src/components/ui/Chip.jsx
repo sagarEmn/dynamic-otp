@@ -1,15 +1,12 @@
-// Amount quick-pick chips (50 / 100 / 500 / 1000 / 5000).
-// See documentation/design-system.md > Core Components.
-
 export default function Chip({ selected = false, className = "", children, ...props }) {
   return (
     <button
       type="button"
       className={[
-        "rounded-lg px-3 py-1.5 text-sm transition-colors",
+        "rounded-lg px-3 py-2 text-sm font-semibold transition-colors duration-150",
         selected
           ? "bg-esewa-green text-white border border-esewa-green"
-          : "border border-esewa-border text-esewa-text hover:border-esewa-green",
+          : "bg-esewa-inputBg border border-esewa-border text-esewa-text hover:border-esewa-green hover:text-esewa-green",
         className,
       ].join(" ")}
       {...props}
