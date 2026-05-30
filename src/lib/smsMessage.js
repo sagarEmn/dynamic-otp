@@ -3,12 +3,6 @@ const formatAmount = (amount) => {
   return value.toLocaleString("en-IN");
 };
 
-const summarizeSignals = (firedSignals) => {
-  if (!firedSignals?.length) return "";
-  const labels = firedSignals.map((signal) => signal.label);
-  return labels.join(", ");
-};
-
 // Build a short "where from" clause from the ORIGIN signals only (new device,
 // unusual location) — the ones that tell the user where the attempt is coming
 // from. We deliberately leave out the call/behavioral signals (the on-screen
@@ -46,17 +40,18 @@ export const buildSmsMessage = ({ tier, transaction, firedSignals, otp }) => {
 };
 
 // Login-phase SMS — no transaction context yet, so it speaks to the login
-// itself and the environmental signals that fired.
+// itself plus the same ORIGIN clause (new device / unusual location) as the
+// transaction SMS, so the user can tell where the sign-in is coming from.
 export const buildLoginSmsMessage = ({ tier, firedSignals, otp }) => {
-  const signalSummary = summarizeSignals(firedSignals);
+  const origin = originClause(firedSignals);
 
   if (tier === "caution") {
-    const details = signalSummary ? ` We noticed: ${signalSummary}.` : "";
+    const details = origin ? ` Sign-in${origin}.` : "";
     return `eSewa OTP: ${otp}.${details} If this wasn't you, do not share it.`;
   }
 
   if (tier === "intervention") {
-    const details = signalSummary ? ` Detected: ${signalSummary}.` : "";
+    const details = origin ? ` Sign-in${origin}.` : "";
     return `eSewa OTP: ${otp} — unusual sign-in attempt.${details} eSewa will NEVER call or ask for this code. If someone is guiding you, STOP.`;
   }
 
