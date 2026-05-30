@@ -82,12 +82,16 @@ export default function TransactionForm() {
                 onChange={(event) => setField("payeeId", event.target.value)}
                 placeholder="9801000001"
                 inputMode="numeric"
+                style={{ color: payeeAnimKey ? "transparent" : undefined }}
               />
-              {payeeAnimKey && (
-                <span key={payeeAnimKey} className="slot-in absolute inset-0 flex items-center px-4 text-base font-bold text-esewa-green overflow-hidden">
-                  {payeeAnimKey}
+              {payeeAnimKey ? (
+                <span
+                  key={payeeAnimKey}
+                  className="slot-in pointer-events-none absolute inset-0 flex items-center px-4 text-base font-medium text-esewa-text"
+                >
+                  {form.payeeId}
                 </span>
-              )}
+              ) : null}
             </div>
           </Field>
 
@@ -100,12 +104,16 @@ export default function TransactionForm() {
                 value={form.amount}
                 onChange={(event) => setField("amount", event.target.value)}
                 placeholder="0"
+                style={{ color: amountAnimKey ? "transparent" : undefined }}
               />
-              {amountAnimKey && (
-                <span key={amountAnimKey} className="slot-in absolute inset-0 flex items-center px-4 text-base font-bold text-esewa-green overflow-hidden">
-                  {amountAnimKey}
+              {amountAnimKey ? (
+                <span
+                  key={amountAnimKey}
+                  className="slot-in pointer-events-none absolute inset-0 flex items-center px-4 text-base font-medium text-esewa-text"
+                >
+                  {form.amount}
                 </span>
-              )}
+              ) : null}
             </div>
           </Field>
 
