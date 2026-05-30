@@ -34,13 +34,13 @@ export const buildLoginSmsMessage = ({ tier, firedSignals, otp }) => {
 
   if (tier === "caution") {
     const details = signalSummary ? ` We noticed: ${signalSummary}.` : "";
-    return `eSewa login code: ${otp}.${details} If this wasn't you, do not share it.`;
+    return `eSewa OTP: ${otp}.${details} If this wasn't you, do not share it.`;
   }
 
   if (tier === "intervention") {
     const details = signalSummary ? ` Detected: ${signalSummary}.` : "";
-    return `eSewa login code: ${otp} — unusual sign-in attempt.${details} eSewa will NEVER call or ask for this code. If someone is guiding you, STOP.`;
+    return `eSewa OTP: ${otp} — unusual sign-in attempt.${details} eSewa will NEVER call or ask for this code. If someone is guiding you, STOP.`;
   }
 
-  return `eSewa login code: ${otp}. Never share it with anyone.`;
+  return `eSewa OTP: ${otp}. Never share it with anyone.`;
 };

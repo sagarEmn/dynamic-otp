@@ -19,8 +19,8 @@
 Run `npm run dev`, open the app, and walk every path. Tick each as you confirm it.
 
 ### Act 1 — Login (`/`)
-- [ ] **Login Scenario A (Stealth):** click it → log in with password `password` → goes **straight to Send Money** (no OTP, no friction).
-- [ ] **Login Scenario B (Caution):** click it → log in → shows **amber** login-OTP screen with acknowledge checkbox → enter `123456` → reaches Send Money.
+- [x] **Login Scenario A (Stealth):** click it → log in with password `password` → goes **straight to Send Money** (no OTP, no friction).
+- [x] **Login Scenario B (Caution):** click it → log in → shows **amber** login-OTP screen with acknowledge checkbox → enter `123456` → reaches Send Money.
 - [ ] **Login Scenario C (Intervention):** click it → log in → shows **red/dark** takeover with countdown timer + checkbox, OTP locked until both done → verify → reaches Send Money.
 - [ ] **Manual failed-password path:** type a wrong password twice, then `password` → confirm the failed-attempts signal pushes the tier up.
 - [ ] **Wrong password message** shows and is clear.
