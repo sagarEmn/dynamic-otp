@@ -33,6 +33,7 @@ export default function LoginScreen() {
   // OTP stage state
   const [otp, setOtp] = useState("");
   const [acknowledged, setAcknowledged] = useState(false);
+  const [slowedAck, setSlowedAck] = useState(false); // extra "I slowed down" tick
   const [secondsLeft, setSecondsLeft] = useState(0);
 
   // Behavioral-detection refs (mirror the transaction OTP screen).
@@ -138,6 +139,8 @@ export default function LoginScreen() {
   };
 
   const canVerify = (() => {
+    // The extra "I've slowed down" tick gates verification whenever it shows.
+    if (tooFastFired && !slowedAck) return false;
     if (tier === "caution") return acknowledged;
     if (tier === "intervention") return secondsLeft === 0 && acknowledged;
     return true;
@@ -208,6 +211,7 @@ export default function LoginScreen() {
           setOtp("");
           setError("");
           setAcknowledged(false);
+          setSlowedAck(false);
         }}
       />
       <form
@@ -249,9 +253,19 @@ export default function LoginScreen() {
                 checked={acknowledged}
                 onChange={(e) => setAcknowledged(e.target.checked)}
               />
-              {tooFastFired
-                ? "I've slowed down and I'm logging in myself."
-                : "I am logging in myself and no one is guiding me to do this."}
+              I am logging in myself and no one is guiding me to do this.
+            </label>
+          ) : null}
+
+          {tooFastFired ? (
+            <label className="flex items-start gap-3 text-sm">
+              <input
+                type="checkbox"
+                className={`mt-0.5 h-4 w-4 ${tier === "intervention" ? "accent-danger-accent" : "accent-caution-accent"}`}
+                checked={slowedAck}
+                onChange={(e) => setSlowedAck(e.target.checked)}
+              />
+              I've slowed down and I'm logging in myself.
             </label>
           ) : null}
         </div>
