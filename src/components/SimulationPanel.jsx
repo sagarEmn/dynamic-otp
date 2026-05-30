@@ -26,10 +26,28 @@ export default function SimulationPanel({ isLogin = false }) {
           <label key={key} className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
-              className="h-6 w-6 accent-esewa-green"
+              className="peer sr-only"
               checked={simulation[key]}
               onChange={() => toggleSimulation(key)}
             />
+            <span
+              className="h-6 w-6 shrink-0 rounded-[6px] border-2 border-gray-300 bg-white
+                         flex items-center justify-center transition-colors
+                         peer-checked:border-esewa-green peer-checked:bg-esewa-green
+                         peer-focus-visible:ring-2 peer-focus-visible:ring-esewa-green/40"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                className="h-4 w-4 text-white"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M5 13l4 4L19 7" />
+              </svg>
+            </span>
             {label}
           </label>
         ))}
