@@ -45,12 +45,12 @@ export function RiskProvider({ children }) {
     firedSignals: [],
     tier: "stealth",
   });
-  // Login-phase scoring result, computed on Login submit.
-  const [loginResult, setLoginResult] = useState({
-    score: 0,
-    firedSignals: [],
-    tier: "stealth",
-  });
+  // Raw login inputs captured on Login submit. We store the INPUT (not the
+  // result) so loginResult can be DERIVED — re-scoring live when a weight
+  // slider changes the config, which lets the login OTP screen escalate/
+  // de-escalate in real time during the demo. `now` is captured once so the
+  // unusual-time clock check stays stable across slider drags.
+  const [loginInput, setLoginInput] = useState(null);
   // Behavioral signal ids fired live on the OTP screen.
   const [behavioralIds, setBehavioralIds] = useState([]);
 
@@ -68,11 +68,14 @@ export function RiskProvider({ children }) {
   );
 
   // Score the login phase from environmental signals + failed attempts.
+  // Capture the input (incl. a frozen `now`) so loginResult can re-derive when
+  // config changes; return the freshly computed result for the caller's
+  // stealth-vs-OTP branch.
   const runLoginScoring = useCallback(
-    (loginInput) => {
-      const result = scoreLogin({ ...loginInput, now: new Date() }, config);
-      setLoginResult(result);
-      return result;
+    (input) => {
+      const captured = { ...input, now: new Date() };
+      setLoginInput(captured);
+      return scoreLogin(captured, config);
     },
     [config],
   );
@@ -85,7 +88,7 @@ export function RiskProvider({ children }) {
   const resetFlow = useCallback(() => {
     setTransaction(EMPTY_TRANSACTION);
     setBaseResult({ score: 0, firedSignals: [], tier: "stealth" });
-    setLoginResult({ score: 0, firedSignals: [], tier: "stealth" });
+    setLoginInput(null);
     setBehavioralIds([]);
     setSimulation({
       activeCall: false,
@@ -101,6 +104,17 @@ export function RiskProvider({ children }) {
   const result = useMemo(
     () => applyBehavioral(baseResult, behavioralIds, config),
     [baseResult, behavioralIds, config],
+  );
+
+  // Derived login result — re-scores whenever the captured input OR the live
+  // config (weights/thresholds) changes. This is what makes a weight slider
+  // escalate the login OTP screen live during the demo.
+  const loginResult = useMemo(
+    () =>
+      loginInput
+        ? scoreLogin(loginInput, config)
+        : { score: 0, firedSignals: [], tier: "stealth" },
+    [loginInput, config],
   );
 
   const value = useMemo(
