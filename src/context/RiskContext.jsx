@@ -39,12 +39,11 @@ export function RiskProvider({ children }) {
   }, []);
 
   const [transaction, setTransaction] = useState(EMPTY_TRANSACTION);
-  // Base (pre-OTP) scoring result, computed on Proceed.
-  const [baseResult, setBaseResult] = useState({
-    score: 0,
-    firedSignals: [],
-    tier: "stealth",
-  });
+  // Raw transaction input captured on Proceed (incl. a frozen `now`). We store
+  // the INPUT, not the result, so baseResult can be DERIVED — re-scoring live
+  // when a weight slider changes the config. This is what makes the
+  // transaction OTP screen escalate/de-escalate live during the demo.
+  const [txInput, setTxInput] = useState(null);
   // Raw login inputs captured on Login submit. We store the INPUT (not the
   // result) so loginResult can be DERIVED — re-scoring live when a weight
   // slider changes the config, which lets the login OTP screen escalate/
@@ -54,15 +53,17 @@ export function RiskProvider({ children }) {
   // Behavioral signal ids fired live on the OTP screen.
   const [behavioralIds, setBehavioralIds] = useState([]);
 
-  // Compute base score from a transaction and store both.
+  // Capture the transaction input on Proceed. Store the input (with a frozen
+  // `now`) so baseResult re-derives when config changes; return the freshly
+  // computed result for the caller.
   const runScoring = useCallback(
     (tx) => {
       const merged = { ...EMPTY_TRANSACTION, ...tx };
       setTransaction(merged);
       setBehavioralIds([]); // fresh run
-      const result = scoreTransaction({ ...merged, now: new Date() }, config);
-      setBaseResult(result);
-      return result;
+      const captured = { ...merged, now: new Date() };
+      setTxInput(captured);
+      return scoreTransaction(captured, config);
     },
     [config],
   );
@@ -87,7 +88,7 @@ export function RiskProvider({ children }) {
 
   const resetFlow = useCallback(() => {
     setTransaction(EMPTY_TRANSACTION);
-    setBaseResult({ score: 0, firedSignals: [], tier: "stealth" });
+    setTxInput(null);
     setLoginInput(null);
     setBehavioralIds([]);
     setSimulation({
@@ -98,6 +99,17 @@ export function RiskProvider({ children }) {
       failedAttempts: false,
     });
   }, []);
+
+  // Derived base (pre-OTP) result — re-scores whenever the captured input OR
+  // the live config (weights/thresholds) changes. This is what makes a weight
+  // slider escalate the transaction OTP screen live during the demo.
+  const baseResult = useMemo(
+    () =>
+      txInput
+        ? scoreTransaction(txInput, config)
+        : { score: 0, firedSignals: [], tier: "stealth" },
+    [txInput, config],
+  );
 
   // The combined result = base + behavioral, re-tiered. This is what the
   // OTP screen renders against; it rises live as behavioral signals fire.

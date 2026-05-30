@@ -165,39 +165,41 @@ export default function LoginScreen() {
       >
         <SmsPopup message={smsMessage} />
 
-        <Banner tone={tier}>{bannerMessage}</Banner>
+        <div className="flex-1 flex flex-col justify-center gap-4">
+          <Banner tone={tier}>{bannerMessage}</Banner>
 
-        <RiskBreakdown
-          score={loginResult.score}
-          firedSignals={loginResult.firedSignals}
-          tier={tier}
-        />
+          <RiskBreakdown
+            score={loginResult.score}
+            firedSignals={loginResult.firedSignals}
+            tier={tier}
+          />
 
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-semibold text-esewa-textMuted px-1">
-            Enter the login code sent to your phone
-          </label>
-          <OtpInput value={otp} tier={tier} disabled={!canVerify} onChange={setOtp} />
-          {error ? <p className="text-xs text-danger-accent">{error}</p> : null}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-semibold text-esewa-textMuted px-1">
+              Enter the login code sent to your phone
+            </label>
+            <OtpInput value={otp} tier={tier} disabled={!canVerify} onChange={setOtp} />
+            {error ? <p className="text-xs text-danger-accent">{error}</p> : null}
+          </div>
+
+          {tier === "intervention" ? (
+            <p className="text-danger-accent font-semibold text-sm">
+              Hold on {secondsLeft}s — confirm this login is really you.
+            </p>
+          ) : null}
+
+          {tier !== "stealth" ? (
+            <label className="flex items-start gap-3 text-sm">
+              <input
+                type="checkbox"
+                className={`mt-0.5 h-4 w-4 ${tier === "intervention" ? "accent-danger-accent" : "accent-caution-accent"}`}
+                checked={acknowledged}
+                onChange={(e) => setAcknowledged(e.target.checked)}
+              />
+              I am logging in myself and no one is guiding me to do this.
+            </label>
+          ) : null}
         </div>
-
-        {tier === "intervention" ? (
-          <p className="text-danger-accent font-semibold text-sm">
-            Hold on {secondsLeft}s — confirm this login is really you.
-          </p>
-        ) : null}
-
-        {tier !== "stealth" ? (
-          <label className="flex items-start gap-3 text-sm">
-            <input
-              type="checkbox"
-              className={`mt-0.5 h-4 w-4 ${tier === "intervention" ? "accent-danger-accent" : "accent-caution-accent"}`}
-              checked={acknowledged}
-              onChange={(e) => setAcknowledged(e.target.checked)}
-            />
-            I am logging in myself and no one is guiding me to do this.
-          </label>
-        ) : null}
 
         <div className="mt-auto">
           <Button
