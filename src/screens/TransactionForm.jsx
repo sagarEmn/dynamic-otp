@@ -17,16 +17,14 @@ const DEFAULT_FORM = {
   amount: "",
   purpose: PURPOSES[0],
   remarks: "",
-  activeCall: false,
-  newDevice: false,
-  unusualLocation: false,
-  unusualTime: false,
 };
+
+const SIM_KEYS = ["activeCall", "newDevice", "unusualLocation", "unusualTime"];
 
 export default function TransactionForm() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { runScoring } = useRisk();
+  const { runScoring, simulation, setSimulationState } = useRisk();
   const [form, setForm] = useState(() => ({
     ...DEFAULT_FORM,
     ...(location.state?.scenarioForm ?? {}),
@@ -34,9 +32,21 @@ export default function TransactionForm() {
 
   useEffect(() => {
     if (location.state?.scenarioForm) {
-      setForm({ ...DEFAULT_FORM, ...location.state.scenarioForm });
+      const sc = location.state.scenarioForm;
+      setForm({ ...DEFAULT_FORM, ...sc });
+      // A scenario also carries simulation toggles — push them to the
+      // shared simulation panel so both stay in sync.
+      const simFromScenario = {};
+      for (const key of SIM_KEYS) {
+        if (key in sc) simFromScenario[key] = sc[key];
+      }
+      if (Object.keys(simFromScenario).length) setSimulationState(simFromScenario);
     }
-  }, [location.state]);
+    // Keyed on `nonce` only: it changes on every scenario click, so this
+    // re-runs reliably. `setSimulationState` is intentionally excluded — it's
+    // recreated each provider render and would cause an infinite loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state?.nonce]);
 
   const setField = (key, value) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -55,10 +65,7 @@ export default function TransactionForm() {
       amount: normalizedAmount,
       purpose: form.purpose,
       remarks: form.remarks.trim(),
-      activeCall: form.activeCall,
-      newDevice: form.newDevice,
-      unusualLocation: form.unusualLocation,
-      unusualTime: form.unusualTime,
+      ...simulation,
     });
     navigate("/processing");
   };
@@ -150,52 +157,6 @@ export default function TransactionForm() {
               placeholder="Add a note"
             />
           </Field>
-        </Card>
-
-        {/* Simulation toggles */}
-        <Card className="border border-esewa-border bg-esewa-surface">
-          <p className="text-sm font-semibold">Simulation controls</p>
-          <p className="text-xs text-esewa-textMuted mb-3">
-            Toggle environment signals for the demo.
-          </p>
-          <div className="flex flex-col gap-3 text-sm font-medium">
-            <label className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                className="h-4 w-4 accent-esewa-green"
-                checked={form.activeCall}
-                onChange={(event) => setField("activeCall", event.target.checked)}
-              />
-              Active phone call
-            </label>
-            <label className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                className="h-4 w-4 accent-esewa-green"
-                checked={form.newDevice}
-                onChange={(event) => setField("newDevice", event.target.checked)}
-              />
-              New / unrecognized device
-            </label>
-            <label className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                className="h-4 w-4 accent-esewa-green"
-                checked={form.unusualLocation}
-                onChange={(event) => setField("unusualLocation", event.target.checked)}
-              />
-              Unusual location
-            </label>
-            <label className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                className="h-4 w-4 accent-esewa-green"
-                checked={form.unusualTime}
-                onChange={(event) => setField("unusualTime", event.target.checked)}
-              />
-              Unusual time (odd hours)
-            </label>
-          </div>
         </Card>
 
         <div className="mt-auto">
