@@ -85,5 +85,5 @@ Run `npm run dev`, open the app, and walk every path. Tick each as you confirm i
 
 ## Demo-day reminders
 - Demo password is **`password`**; demo OTP is **`123456`**.
-- If demoing at odd hours (11pm–5am), the **unusual-time** signal fires automatically from the clock — account for it or use the toggle deliberately.
+- The **unusual-time** signal is toggle-only — it never reads the system clock, so scoring is identical at any hour. Flip the toggle deliberately when you want it.
 - Run `node src/lib/riskEngine.test.mjs` once before presenting to confirm the engine still scores A/B/C correctly.
