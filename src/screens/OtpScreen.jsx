@@ -9,15 +9,10 @@ import SmsPopup from "../components/ui/SmsPopup.jsx";
 import RiskBreakdown from "../components/ui/RiskBreakdown.jsx";
 import OtpInput from "../components/ui/OtpInput.jsx";
 import { buildSmsMessage } from "../lib/smsMessage.js";
+import { buildBannerMessage } from "../lib/bannerMessage.js";
 
 const DEMO_OTP = "123456";
 const INTERVENTION_TIMER_SECONDS = 10;
-
-const buildSignalSummary = (firedSignals) => {
-  if (!firedSignals.length) return "No risk signals detected.";
-  const labels = firedSignals.map((signal) => signal.label);
-  return `We noticed: ${labels.join(", ")}.`;
-};
 
 export default function OtpScreen() {
   const navigate = useNavigate();
@@ -50,9 +45,9 @@ export default function OtpScreen() {
     return () => clearInterval(timer);
   }, [result.tier]);
 
-  const signalSummary = useMemo(
-    () => buildSignalSummary(result.firedSignals),
-    [result.firedSignals],
+  const bannerMessage = useMemo(
+    () => buildBannerMessage(result.tier, result.firedSignals),
+    [result.tier, result.firedSignals],
   );
 
   const smsMessage = useMemo(
@@ -100,8 +95,7 @@ export default function OtpScreen() {
         <SmsPopup message={smsMessage} />
         <div className="flex-1 flex flex-col justify-center gap-3">
           <Banner tone={result.tier}>
-            {result.tier === "stealth" && "Never share your OTP with anyone."}
-            {result.tier !== "stealth" && signalSummary}
+            {bannerMessage}
           </Banner>
 
           <RiskBreakdown
