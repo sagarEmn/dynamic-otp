@@ -17,16 +17,16 @@ export default function SimulationPanel({ isLogin = false }) {
   const toggles = isLogin ? [...ENV_TOGGLES, LOGIN_TOGGLE] : ENV_TOGGLES;
 
   return (
-    <div className="flex flex-col gap-3">
-      <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">
+    <div className="flex flex-col gap-4">
+      <p className="text-base font-bold text-gray-400 uppercase tracking-widest">
         Simulation controls
       </p>
-      <div className="bg-white rounded-xl shadow-card border border-esewa-border px-4 py-4 flex flex-col gap-3 text-sm font-medium">
+      <div className="bg-white rounded-xl shadow-card border border-esewa-border px-5 py-5 flex flex-col gap-4 text-base font-medium">
         {toggles.map(({ key, label }) => (
           <label key={key} className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
-              className="h-4 w-4 accent-esewa-green"
+              className="h-6 w-6 accent-esewa-green"
               checked={simulation[key]}
               onChange={() => toggleSimulation(key)}
             />
