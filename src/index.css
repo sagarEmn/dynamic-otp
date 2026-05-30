@@ -67,14 +67,15 @@
 
 @keyframes slot-in {
   0%   { transform: scale(3.5); opacity: 0; }
-  60%  { transform: scale(1.1); opacity: 1; }
+  40%  { opacity: 1; }
+  65%  { transform: scale(1.06); }
   100% { transform: scale(1); opacity: 1; }
 }
 
 .slot-in {
   display: inline-block;
   transform-origin: left center;
-  animation: slot-in 0.45s cubic-bezier(0.34, 1.4, 0.5, 1) both;
+  animation: slot-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 html,
