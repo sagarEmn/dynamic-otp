@@ -67,7 +67,9 @@ export function scoreTransaction(input, config = DEFAULT_CONFIG) {
   if (input.activeCall) add("activeCall", weights.activeCall);
   if (input.newDevice) add("newDevice", weights.newDevice);
   if (input.unusualLocation) add("unusualLocation", weights.unusualLocation);
-  if (isUnusualTime(input.now)) add("unusualTime", weights.unusualTime);
+  // Fires if the demo toggle forces it OR the real clock is in odd hours.
+  if (input.unusualTime || isUnusualTime(input.now))
+    add("unusualTime", weights.unusualTime);
 
   const score = firedSignals.reduce((sum, s) => sum + s.points, 0);
   return { score, firedSignals, tier: tierForScore(score, config) };

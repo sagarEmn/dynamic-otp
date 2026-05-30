@@ -20,6 +20,7 @@ const DEFAULT_FORM = {
   activeCall: false,
   newDevice: false,
   unusualLocation: false,
+  unusualTime: false,
 };
 
 export default function TransactionForm() {
@@ -57,6 +58,7 @@ export default function TransactionForm() {
       activeCall: form.activeCall,
       newDevice: form.newDevice,
       unusualLocation: form.unusualLocation,
+      unusualTime: form.unusualTime,
     });
     navigate("/processing");
   };
@@ -183,6 +185,15 @@ export default function TransactionForm() {
                 onChange={(event) => setField("unusualLocation", event.target.checked)}
               />
               Unusual location
+            </label>
+            <label className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-esewa-green"
+                checked={form.unusualTime}
+                onChange={(event) => setField("unusualTime", event.target.checked)}
+              />
+              Unusual time (odd hours)
             </label>
           </div>
         </Card>

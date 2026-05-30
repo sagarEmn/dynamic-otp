@@ -7,4 +7,5 @@ export const EMPTY_TRANSACTION = {
   activeCall: false,
   newDevice: false,
   unusualLocation: false,
+  unusualTime: false,
 };

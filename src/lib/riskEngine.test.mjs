@@ -49,6 +49,21 @@ for (const s of scenarios) {
   );
 }
 
+// Unusual-time toggle forces the signal even on a daytime clock (+10).
+console.log("\nUnusual-time toggle\n");
+{
+  const r = scoreTransaction({
+    amount: 500,
+    payeeId: "9801000001",
+    unusualTime: true,
+    now: noon,
+  });
+  log(
+    r.score === 10 && r.firedSignals.some((s) => s.id === "unusualTime"),
+    `Toggle on daytime clock  ->  score ${r.score} (want 10), unusualTime fired (${r.firedSignals.some((s) => s.id === "unusualTime")})`,
+  );
+}
+
 // Behavioral re-escalation: Caution (55) + paste (+20) = 75 -> intervention
 console.log("\nBehavioral re-escalation\n");
 {
