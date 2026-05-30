@@ -6,6 +6,7 @@ import Button from "../components/ui/Button.jsx";
 import Input, { Field } from "../components/ui/Input.jsx";
 import Chip from "../components/ui/Chip.jsx";
 import Card from "../components/ui/Card.jsx";
+import { useSlotAnimation } from "../hooks/useSlotAnimation.js";
 
 const AMOUNT_OPTIONS = [50, 100, 1000, 5000, 40000];
 const PURPOSES = ["Family", "Rent", "Utilities", "Shopping", "Education", "Other"];
@@ -39,6 +40,8 @@ export default function TransactionForm() {
   const setField = (key, value) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
+  const payeeAnimKey = useSlotAnimation(form.payeeId);
+  const amountAnimKey = useSlotAnimation(form.amount);
   const normalizedAmount = Number(form.amount) || 0;
   const canProceed = form.payeeId.trim().length > 0 && normalizedAmount > 0;
 
@@ -73,23 +76,37 @@ export default function TransactionForm() {
           </div>
 
           <Field label="eSewa ID">
-            <Input
-              value={form.payeeId}
-              onChange={(event) => setField("payeeId", event.target.value)}
-              placeholder="9801000001"
-              inputMode="numeric"
-            />
+            <div className="relative">
+              <Input
+                value={form.payeeId}
+                onChange={(event) => setField("payeeId", event.target.value)}
+                placeholder="9801000001"
+                inputMode="numeric"
+              />
+              {payeeAnimKey && (
+                <span key={payeeAnimKey} className="slot-in absolute inset-0 flex items-center px-4 text-base font-bold text-esewa-green overflow-hidden">
+                  {payeeAnimKey}
+                </span>
+              )}
+            </div>
           </Field>
 
           <Field label="Amount">
-            <Input
-              type="number"
-              min="0"
-              step="1"
-              value={form.amount}
-              onChange={(event) => setField("amount", event.target.value)}
-              placeholder="0"
-            />
+            <div className="relative">
+              <Input
+                type="number"
+                min="0"
+                step="1"
+                value={form.amount}
+                onChange={(event) => setField("amount", event.target.value)}
+                placeholder="0"
+              />
+              {amountAnimKey && (
+                <span key={amountAnimKey} className="slot-in absolute inset-0 flex items-center px-4 text-base font-bold text-esewa-green overflow-hidden">
+                  {amountAnimKey}
+                </span>
+              )}
+            </div>
           </Field>
 
           <div className="flex flex-wrap gap-2">
