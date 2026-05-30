@@ -53,9 +53,11 @@ export function RiskProvider({ children }) {
   // Behavioral signal ids fired live on the OTP screen.
   const [behavioralIds, setBehavioralIds] = useState([]);
 
-  // Capture the transaction input on Proceed. Store the input (with a frozen
-  // `now`) so baseResult re-derives when config changes; return the freshly
-  // computed result for the caller.
+  // Capture the transaction input on Proceed. We store only the
+  // transaction-specific facts (amount/payee) plus a frozen `now` — NOT the
+  // environmental toggles. Those are read LIVE from `simulation` at score time
+  // so toggling a signal on/off on the OTP page re-scores live, just like a
+  // weight slider does. baseResult re-derives on config OR simulation change.
   const runScoring = useCallback(
     (tx) => {
       const merged = { ...EMPTY_TRANSACTION, ...tx };
@@ -63,9 +65,9 @@ export function RiskProvider({ children }) {
       setBehavioralIds([]); // fresh run
       const captured = { ...merged, now: new Date() };
       setTxInput(captured);
-      return scoreTransaction(captured, config);
+      return scoreTransaction({ ...captured, ...simulation }, config);
     },
-    [config],
+    [config, simulation],
   );
 
   // Score the login phase from environmental signals + failed attempts.
@@ -106,9 +108,9 @@ export function RiskProvider({ children }) {
   const baseResult = useMemo(
     () =>
       txInput
-        ? scoreTransaction(txInput, config)
+        ? scoreTransaction({ ...txInput, ...simulation }, config)
         : { score: 0, firedSignals: [], tier: "stealth" },
-    [txInput, config],
+    [txInput, simulation, config],
   );
 
   // The combined result = base + behavioral, re-tiered. This is what the
