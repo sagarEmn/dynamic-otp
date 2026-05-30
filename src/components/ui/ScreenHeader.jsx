@@ -7,7 +7,7 @@ const TONES = {
 
 export default function ScreenHeader({ title, onBack, tone = "green", right = null }) {
   return (
-    <div className={`flex items-center gap-2 px-4 py-4 ${TONES[tone] ?? TONES.green}`}>
+    <div className={`flex items-center gap-2 px-4 py-4 transition-colors duration-500 ease-out ${TONES[tone] ?? TONES.green}`}>
       {onBack ? (
         <button onClick={onBack} aria-label="Back" className="shrink-0 p-0.5 rounded-lg active:bg-white/20">
           <ChevronLeft size={24} strokeWidth={2.5} />

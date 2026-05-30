@@ -89,7 +89,7 @@ export default function OtpScreen() {
       />
       <form
         onSubmit={onSubmit}
-        className={`flex-1 px-5 py-6 flex flex-col gap-5 relative ${
+        className={`flex-1 px-5 py-6 flex flex-col gap-5 relative transition-colors duration-500 ease-out ${
           result.tier === "intervention" ? "bg-danger-bg text-white" : ""
         }`}
       >

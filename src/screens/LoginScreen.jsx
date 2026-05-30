@@ -159,7 +159,7 @@ export default function LoginScreen() {
       />
       <form
         onSubmit={submitOtp}
-        className={`flex-1 px-5 py-6 flex flex-col gap-4 relative ${
+        className={`flex-1 px-5 py-6 flex flex-col gap-4 relative transition-colors duration-500 ease-out ${
           tier === "intervention" ? "bg-danger-bg text-white" : ""
         }`}
       >
