@@ -1,20 +1,22 @@
 import { useRisk } from "../context/useRisk.js";
 
-// Environmental signals are shared by both phases. Failed-password attempts is
-// a login-only signal, so it only appears on the login screen.
+// Environmental signals are shared by both phases. New device and failed-
+// password attempts are login-only signals, so they only appear on login.
 const ENV_TOGGLES = [
   { key: "activeCall",      label: "Active phone call" },
-  { key: "newDevice",       label: "New / unrecognized device" },
   { key: "unusualLocation", label: "Unusual location" },
   { key: "unusualTime",     label: "Unusual time (odd hours)" },
 ];
 
-const LOGIN_TOGGLE = { key: "failedAttempts", label: "Repeated failed passwords" };
+const LOGIN_TOGGLES = [
+  { key: "newDevice",       label: "New / unrecognized device" },
+  { key: "failedAttempts",  label: "Repeated failed passwords" },
+];
 
 export default function SimulationPanel({ isLogin = false }) {
   const { simulation, toggleSimulation } = useRisk();
 
-  const toggles = isLogin ? [...ENV_TOGGLES, LOGIN_TOGGLE] : ENV_TOGGLES;
+  const toggles = isLogin ? [...ENV_TOGGLES, ...LOGIN_TOGGLES] : ENV_TOGGLES;
 
   return (
     <div className="flex flex-col gap-4">

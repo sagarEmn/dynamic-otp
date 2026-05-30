@@ -3,8 +3,9 @@
 // touching the engine logic.
 //
 // Signals split by phase:
-//   Environmental (shared by login + transaction): activeCall, newDevice,
+//   Environmental (shared by login + transaction): activeCall,
 //     unusualLocation, unusualTime.
+//   Login-only: newDevice, failedAttempts.
 //   Transaction-only: highValue, veryHighValue.
 //
 // NON-NEGOTIABLE: the three transaction demo scenarios must land every time.

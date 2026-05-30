@@ -38,7 +38,9 @@ function buildResult(firedSignals, config) {
 }
 
 // The environmental signals shared by BOTH authentication phases (login and
-// transaction): active call, new device, unusual location, unusual time.
+// transaction): active call, unusual location, unusual time.
+// (New device is LOGIN-ONLY — a device is recognized at sign-in, so it's not
+//  re-evaluated at transaction time. Added in scoreLogin().)
 // Returns the fired-signal objects so each phase can add its own on top.
 function environmentalSignals(input, config) {
   const { weights } = config;
@@ -46,7 +48,6 @@ function environmentalSignals(input, config) {
   const add = (id, points) => fired.push({ id, label: SIGNAL_LABELS[id], points });
 
   if (input.activeCall) add("activeCall", weights.activeCall);
-  if (input.newDevice) add("newDevice", weights.newDevice);
   if (input.unusualLocation) add("unusualLocation", weights.unusualLocation);
   // Toggle-only: deliberately does NOT read the system clock, so scoring is
   // deterministic at any hour and the demo is reproducible.
@@ -57,7 +58,7 @@ function environmentalSignals(input, config) {
 
 /**
  * Score the LOGIN authentication phase.
- * Signals: environmental (call/device/location/time) + repeated failed
+ * Signals: environmental (call/location/time) + new device + repeated failed
  * password attempts. No amount — there's no transaction yet.
  * @param {Object} input  { activeCall, newDevice, unusualLocation, unusualTime,
  *                          failedAttempts:boolean, now }
@@ -66,6 +67,13 @@ function environmentalSignals(input, config) {
  */
 export function scoreLogin(input, config = DEFAULT_CONFIG) {
   const fired = environmentalSignals(input, config);
+  // New device is login-only — a device is recognized at sign-in.
+  if (input.newDevice)
+    fired.push({
+      id: "newDevice",
+      label: SIGNAL_LABELS.newDevice,
+      points: config.weights.newDevice,
+    });
   if (input.failedAttempts)
     fired.push({
       id: "failedAttempts",
@@ -77,8 +85,9 @@ export function scoreLogin(input, config = DEFAULT_CONFIG) {
 
 /**
  * Score the TRANSACTION authentication phase.
- * Signals: environmental (call/device/location/time) + amount (high/very-high).
- * @param {Object} input  { amount, activeCall, newDevice, unusualLocation,
+ * Signals: environmental (call/location/time) + amount (high/very-high).
+ * No new-device signal — that's evaluated at login only.
+ * @param {Object} input  { amount, activeCall, unusualLocation,
  *                          unusualTime, now }
  * @param {Object} config
  * @returns {{ score, firedSignals, tier }}
