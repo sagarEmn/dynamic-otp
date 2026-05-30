@@ -1,5 +1,5 @@
 // Phase 3 is the core — the three tier modes. UI changes by tier.
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRisk } from "../context/useRisk.js";
 import ScreenHeader from "../components/ui/ScreenHeader.jsx";
@@ -19,9 +19,18 @@ const buildSignalSummary = (firedSignals) => {
 
 export default function OtpScreen() {
   const navigate = useNavigate();
-  const { result } = useRisk();
+  const { result, addBehavioral } = useRisk();
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
+  const loadTimeRef = useRef(null);
+  const firstInputRef = useRef(null);
+  const entryStartRef = useRef(null);
+  const pasteRef = useRef(false);
+  const attemptsRef = useRef(0);
+
+  useEffect(() => {
+    if (!loadTimeRef.current) loadTimeRef.current = Date.now();
+  }, []);
   const [acknowledged, setAcknowledged] = useState(false);
   const [checks, setChecks] = useState({
     verifyReceiver: false,
@@ -67,6 +76,8 @@ export default function OtpScreen() {
     if (!canVerify) return;
     if (otp !== DEMO_OTP) {
       setError("Incorrect OTP. Please try again.");
+      attemptsRef.current += 1;
+      if (attemptsRef.current >= 3) addBehavioral("tooManyAttempts");
       return;
     }
     navigate("/success");
@@ -104,8 +115,36 @@ export default function OtpScreen() {
               value={otp}
               disabled={!canVerify}
               onChange={(event) => {
-                setOtp(event.target.value.replace(/\D/g, ""));
+                const nextValue = event.target.value.replace(/\D/g, "");
+                setOtp(nextValue);
+                if (!firstInputRef.current) {
+                  const now = Date.now();
+                  firstInputRef.current = now;
+                  entryStartRef.current = now;
+                  if (now - loadTimeRef.current < 2000) {
+                    addBehavioral("noPause");
+                  }
+                }
+                if (nextValue.length === 6 && entryStartRef.current) {
+                  const duration = Date.now() - entryStartRef.current;
+                  if (!pasteRef.current && duration < 1500) {
+                    addBehavioral("tooFast");
+                  }
+                  pasteRef.current = false;
+                }
                 if (error) setError("");
+              }}
+              onPaste={() => {
+                pasteRef.current = true;
+                const now = Date.now();
+                if (!firstInputRef.current) {
+                  firstInputRef.current = now;
+                  entryStartRef.current = now;
+                  if (now - loadTimeRef.current < 2000) {
+                    addBehavioral("noPause");
+                  }
+                }
+                addBehavioral("paste");
               }}
               placeholder="••••••"
             />
