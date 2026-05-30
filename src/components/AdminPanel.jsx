@@ -3,7 +3,6 @@ import { useRisk } from "../context/useRisk.js";
 const SIGNAL_WEIGHTS = [
   { key: "highValue",        label: "High value",       max: 50 },
   { key: "veryHighValue",    label: "Very high value",  max: 30 },
-  { key: "newPayee",         label: "New payee",        max: 50 },
   { key: "activeCall",       label: "Active call",      max: 50 },
   { key: "newDevice",        label: "New device",       max: 50 },
   { key: "unusualLocation",  label: "Unusual location", max: 50 },

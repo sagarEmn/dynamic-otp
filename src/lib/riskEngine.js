@@ -3,14 +3,12 @@
 // and the verification table in documentation/spec-rules.md).
 
 import { DEFAULT_CONFIG } from "./riskConfig.js";
-import { isKnownPayee } from "./knownPayees.js";
 
 // Human-readable labels for each signal id (used by the breakdown panel
 // and the dynamic warning messages). Single source of truth.
 export const SIGNAL_LABELS = {
   highValue: "High value transaction",
   veryHighValue: "Very high value",
-  newPayee: "First-time recipient",
   activeCall: "Active phone call",
   newDevice: "New / unrecognized device",
   unusualLocation: "Unusual location",
@@ -60,9 +58,6 @@ export function scoreTransaction(input, config = DEFAULT_CONFIG) {
   if (amt > amount.highValueThreshold) add("highValue", weights.highValue);
   if (amt > amount.veryHighValueThreshold)
     add("veryHighValue", weights.veryHighValue);
-
-  if (input.payeeId && !isKnownPayee(input.payeeId))
-    add("newPayee", weights.newPayee);
 
   if (input.activeCall) add("activeCall", weights.activeCall);
   if (input.newDevice) add("newDevice", weights.newDevice);

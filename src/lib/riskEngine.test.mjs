@@ -10,26 +10,26 @@ const noon = new Date(2026, 4, 29, 12, 0, 0); // 29 May 2026, 12:00
 
 const scenarios = [
   {
-    name: "A — Rs.500, known payee, no call",
+    name: "A — Rs.500, normal context",
     input: { amount: 500, payeeId: "9801000001", now: noon },
     expectScore: 0,
     expectTier: "stealth",
   },
   {
-    name: "B — Rs.25,000, new payee, no call",
-    input: { amount: 25000, payeeId: "9809999999", now: noon },
-    expectScore: 55,
+    name: "B — Rs.25,000, unusual location",
+    input: { amount: 25000, unusualLocation: true, now: noon },
+    expectScore: 55, // highValue 30 + unusualLocation 25
     expectTier: "caution",
   },
   {
-    name: "C — Rs.50,000, new payee, active call",
+    name: "C — Rs.50,000, active call + unusual location",
     input: {
       amount: 50000,
-      payeeId: "9809999999",
       activeCall: true,
+      unusualLocation: true,
       now: noon,
     },
-    expectScore: 90,
+    expectScore: 100, // highValue 30 + veryHighValue 15 + activeCall 30 + unusualLocation 25
     expectTier: "intervention",
   },
 ];
@@ -49,18 +49,17 @@ for (const s of scenarios) {
   );
 }
 
-// Unusual-time toggle forces the signal even on a daytime clock (+10).
+// Unusual-time toggle forces the signal even on a daytime clock (+15).
 console.log("\nUnusual-time toggle\n");
 {
   const r = scoreTransaction({
     amount: 500,
-    payeeId: "9801000001",
     unusualTime: true,
     now: noon,
   });
   log(
-    r.score === 10 && r.firedSignals.some((s) => s.id === "unusualTime"),
-    `Toggle on daytime clock  ->  score ${r.score} (want 10), unusualTime fired (${r.firedSignals.some((s) => s.id === "unusualTime")})`,
+    r.score === 15 && r.firedSignals.some((s) => s.id === "unusualTime"),
+    `Toggle on daytime clock  ->  score ${r.score} (want 15), unusualTime fired (${r.firedSignals.some((s) => s.id === "unusualTime")})`,
   );
 }
 
@@ -69,7 +68,7 @@ console.log("\nBehavioral re-escalation\n");
 {
   const base = scoreTransaction({
     amount: 25000,
-    payeeId: "9809999999",
+    unusualLocation: true,
     now: noon,
   });
   const r = applyBehavioral(base, ["paste"]);

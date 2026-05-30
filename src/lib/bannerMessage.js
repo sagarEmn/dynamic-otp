@@ -1,7 +1,6 @@
 const SIGNAL_FRAGMENTS = {
   highValue:         "a large payment",
   veryHighValue:     "a very large payment",
-  newPayee:          "to someone you haven't paid before",
   activeCall:        "while on an active phone call",
   newDevice:         "from an unrecognized device",
   unusualLocation:   "from an unusual location",
