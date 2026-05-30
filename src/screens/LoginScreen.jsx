@@ -150,6 +150,12 @@ export default function LoginScreen() {
       <ScreenHeader
         title="Verify it's you"
         tone={tier === "intervention" ? "dark" : "green"}
+        onBack={() => {
+          setStage("credentials");
+          setOtp("");
+          setError("");
+          setAcknowledged(false);
+        }}
       />
       <form
         onSubmit={submitOtp}

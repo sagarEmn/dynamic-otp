@@ -85,6 +85,7 @@ export default function OtpScreen() {
       <ScreenHeader
         title="Verify OTP"
         tone={result.tier === "intervention" ? "dark" : "green"}
+        onBack={() => navigate("/send")}
       />
       <form
         onSubmit={onSubmit}
