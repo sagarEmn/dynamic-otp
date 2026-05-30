@@ -6,7 +6,6 @@ import ScreenHeader from "../components/ui/ScreenHeader.jsx";
 import Banner from "../components/ui/Banner.jsx";
 import Button from "../components/ui/Button.jsx";
 import SmsPopup from "../components/ui/SmsPopup.jsx";
-import RiskBreakdown from "../components/ui/RiskBreakdown.jsx";
 import OtpInput from "../components/ui/OtpInput.jsx";
 import { buildSmsMessage } from "../lib/smsMessage.js";
 import { buildBannerMessage } from "../lib/bannerMessage.js";
@@ -97,12 +96,6 @@ export default function OtpScreen() {
           <Banner tone={result.tier}>
             {bannerMessage}
           </Banner>
-
-          <RiskBreakdown
-            score={result.score}
-            firedSignals={result.firedSignals}
-            tier={result.tier}
-          />
 
           <div className="flex flex-col gap-3">
             <label className="text-sm font-semibold text-esewa-textMuted px-5 py-1">

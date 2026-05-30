@@ -3,14 +3,18 @@ import { LOGIN_SCENARIOS, TRANSACTION_SCENARIOS } from "../lib/scenarios.js";
 import { useRisk } from "../context/useRisk.js";
 import AdminPanel from "./AdminPanel.jsx";
 import SimulationPanel from "./SimulationPanel.jsx";
+import RiskBreakdown from "./ui/RiskBreakdown.jsx";
 
 export default function PhoneFrame() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { setSimulationState } = useRisk();
+  const { setSimulationState, result, loginResult } = useRisk();
 
   // Login is the entry route ("/"); the transaction form lives at "/send".
   const isLogin = location.pathname === "/";
+
+  // The live score to break down: login phase on "/", transaction elsewhere.
+  const breakdown = isLogin ? loginResult : result;
 
   // Transaction scenario → fill the Send Money form (nonce forces the form's
   // effect to re-run even when re-applying the same scenario).
@@ -58,8 +62,15 @@ export default function PhoneFrame() {
         <Outlet />
       </div>
 
-      {/* Admin panel — right */}
-      <AdminPanel isLogin={isLogin} />
+      {/* Right column — risk weights + live risk breakdown */}
+      <div className="flex flex-col gap-6 w-72 shrink-0">
+        <AdminPanel isLogin={isLogin} />
+        <RiskBreakdown
+          score={breakdown.score}
+          firedSignals={breakdown.firedSignals}
+          tier={breakdown.tier}
+        />
+      </div>
 
     </div>
   );

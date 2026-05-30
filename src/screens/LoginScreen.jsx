@@ -10,7 +10,6 @@ import Banner from "../components/ui/Banner.jsx";
 import Button from "../components/ui/Button.jsx";
 import Input, { Field } from "../components/ui/Input.jsx";
 import SmsPopup from "../components/ui/SmsPopup.jsx";
-import RiskBreakdown from "../components/ui/RiskBreakdown.jsx";
 import OtpInput from "../components/ui/OtpInput.jsx";
 import { buildBannerMessage } from "../lib/bannerMessage.js";
 import { buildLoginSmsMessage } from "../lib/smsMessage.js";
@@ -167,12 +166,6 @@ export default function LoginScreen() {
 
         <div className="flex-1 flex flex-col justify-center gap-4">
           <Banner tone={tier}>{bannerMessage}</Banner>
-
-          <RiskBreakdown
-            score={loginResult.score}
-            firedSignals={loginResult.firedSignals}
-            tier={tier}
-          />
 
           <div className="flex flex-col gap-2">
             <label className="text-sm font-semibold text-esewa-textMuted px-1">

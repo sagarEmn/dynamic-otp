@@ -65,7 +65,7 @@ export default function AdminPanel({ isLogin = false }) {
     : [...AMOUNT_WEIGHTS, ...ENV_WEIGHTS];
 
   return (
-    <div className="flex flex-col gap-3 w-72 shrink-0">
+    <div className="flex flex-col gap-3">
       <p className="text-lg font-bold text-esewa-green uppercase tracking-widest">
         Risk weights · {isLogin ? "Login" : "Transaction"}
       </p>
