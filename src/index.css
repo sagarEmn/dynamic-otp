@@ -73,7 +73,6 @@
 }
 
 .slot-in {
-  display: inline-block;
   transform-origin: left center;
   animation: slot-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }

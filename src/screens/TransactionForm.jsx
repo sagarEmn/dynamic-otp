@@ -85,11 +85,10 @@ export default function TransactionForm() {
                 style={{ color: payeeAnimKey ? "transparent" : undefined }}
               />
               {payeeAnimKey ? (
-                <span
-                  key={payeeAnimKey}
-                  className="slot-in pointer-events-none absolute inset-0 flex items-center px-4 text-base font-medium text-esewa-text"
-                >
-                  {form.payeeId}
+                <span className="pointer-events-none absolute inset-0 flex items-center px-4 text-base font-medium text-esewa-text overflow-hidden">
+                  <span key={payeeAnimKey} className="slot-in">
+                    {form.payeeId}
+                  </span>
                 </span>
               ) : null}
             </div>
@@ -107,11 +106,10 @@ export default function TransactionForm() {
                 style={{ color: amountAnimKey ? "transparent" : undefined }}
               />
               {amountAnimKey ? (
-                <span
-                  key={amountAnimKey}
-                  className="slot-in pointer-events-none absolute inset-0 flex items-center px-4 text-base font-medium text-esewa-text"
-                >
-                  {form.amount}
+                <span className="pointer-events-none absolute inset-0 flex items-center px-4 text-base font-medium text-esewa-text overflow-hidden">
+                  <span key={amountAnimKey} className="slot-in">
+                    {form.amount}
+                  </span>
                 </span>
               ) : null}
             </div>
