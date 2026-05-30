@@ -1,5 +1,6 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { SCENARIOS } from "../lib/scenarios.js";
+import AdminPanel from "./AdminPanel.jsx";
 
 export default function PhoneFrame() {
   const navigate = useNavigate();
@@ -9,14 +10,10 @@ export default function PhoneFrame() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center gap-6 p-4">
-      {/* Phone */}
-      <div className="w-[410px] min-h-[844px] bg-esewa-surface rounded-3xl shadow-popup overflow-hidden flex flex-col">
-        <Outlet />
-      </div>
+    <div className="min-h-screen bg-gray-100 grid grid-cols-[180px_410px_180px] items-start justify-center gap-6 p-8">
 
-      {/* Scenario panel */}
-      <div className="flex flex-col gap-3 w-44">
+      {/* Scenario panel — left */}
+      <div className="flex flex-col gap-3">
         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Demo scenarios</p>
         {SCENARIOS.map((scenario) => (
           <button
@@ -32,6 +29,15 @@ export default function PhoneFrame() {
           </button>
         ))}
       </div>
+
+      {/* Phone — center */}
+      <div className="w-[410px] min-h-[844px] bg-esewa-surface rounded-3xl shadow-popup overflow-hidden flex flex-col">
+        <Outlet />
+      </div>
+
+      {/* Admin panel — right */}
+      <AdminPanel />
+
     </div>
   );
 }

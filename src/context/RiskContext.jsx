@@ -10,8 +10,14 @@ import { EMPTY_TRANSACTION } from "./riskConstants.js";
 import { RiskContext } from "./riskContextBase.js";
 
 export function RiskProvider({ children }) {
-  // Admin dashboard (Phase 5) can override this later.
-  const [config] = useState(DEFAULT_CONFIG);
+  const [config, setConfig] = useState(DEFAULT_CONFIG);
+
+  const updateWeight = (category, key, value) => {
+    setConfig((prev) => ({
+      ...prev,
+      [category]: { ...prev[category], [key]: Number(value) },
+    }));
+  };
 
   const [transaction, setTransaction] = useState(EMPTY_TRANSACTION);
   // Base (pre-OTP) scoring result, computed on Proceed.
@@ -53,10 +59,11 @@ export function RiskProvider({ children }) {
 
   const value = {
     config,
+    updateWeight,
     transaction,
     baseResult,
     behavioralIds,
-    result, // { score, firedSignals, tier } — combined
+    result,
     runScoring,
     addBehavioral,
     resetFlow,
