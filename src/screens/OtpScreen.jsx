@@ -98,7 +98,7 @@ export default function OtpScreen() {
         }`}
       >
         <SmsPopup message={smsMessage} />
-        <div className="flex-1 flex flex-col justify-center gap-5">
+        <div className="flex-1 flex flex-col justify-center gap-3">
           <Banner tone={result.tier}>
             {result.tier === "stealth" && "Never share your OTP with anyone."}
             {result.tier !== "stealth" && signalSummary}
@@ -111,7 +111,7 @@ export default function OtpScreen() {
           />
 
           <div className="flex flex-col gap-3">
-            <label className="text-sm font-semibold text-esewa-textMuted">
+            <label className="text-sm font-semibold text-esewa-textMuted px-5 py-1">
               Enter 6-digit OTP
             </label>
             <OtpInput

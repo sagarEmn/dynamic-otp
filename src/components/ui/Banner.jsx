@@ -6,7 +6,7 @@ const TONES = {
 
 export default function Banner({ tone = "stealth", className = "", children }) {
   return (
-    <div className={`rounded-xl p-4 text-sm font-medium ${TONES[tone] ?? TONES.stealth} ${className}`}>
+    <div className={`rounded-xl px-5 py-4 text-sm font-medium ${TONES[tone] ?? TONES.stealth} ${className}`}>
       {children}
     </div>
   );
