@@ -16,7 +16,7 @@ const INTERVENTION_TIMER_SECONDS = 10;
 
 export default function OtpScreen() {
   const navigate = useNavigate();
-  const { result, addBehavioral } = useRisk();
+  const { result, transaction, addBehavioral } = useRisk();
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
   const loadTimeRef = useRef(null);
@@ -54,11 +54,10 @@ export default function OtpScreen() {
     () =>
       buildSmsMessage({
         tier: result.tier,
-        transaction: result.transaction,
-        firedSignals: result.firedSignals,
+        transaction,
         otp: DEMO_OTP,
       }),
-    [result.tier, result.transaction, result.firedSignals],
+    [result.tier, transaction],
   );
 
   const canVerify = (() => {

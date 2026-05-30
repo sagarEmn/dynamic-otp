@@ -9,19 +9,19 @@ const summarizeSignals = (firedSignals) => {
   return labels.join(", ");
 };
 
-export const buildSmsMessage = ({ tier, transaction, firedSignals, otp }) => {
+// The on-screen banner already lists the fired signals (active call, unusual
+// location, etc.), so the SMS deliberately does NOT repeat them — it focuses on
+// the transaction facts (amount + recipient) and the core anti-fraud warning.
+export const buildSmsMessage = ({ tier, transaction, otp }) => {
   const amount = formatAmount(transaction?.amount);
   const payee = transaction?.payeeName || transaction?.payeeId || "recipient";
-  const signalSummary = summarizeSignals(firedSignals);
 
   if (tier === "caution") {
-    const details = signalSummary ? ` (${signalSummary})` : "";
-    return `eSewa code: ${otp} for Rs. ${amount} to ${payee}${details}. Share with no one.`;
+    return `eSewa code: ${otp} for Rs. ${amount} to ${payee}. Share with no one.`;
   }
 
   if (tier === "intervention") {
-    const details = signalSummary ? ` Detected: ${signalSummary}.` : "";
-    return `eSewa code: ${otp} — Rs. ${amount} to ${payee}.${details} eSewa will NEVER call or ask for this code. If someone is guiding you, STOP.`;
+    return `eSewa code: ${otp} — Rs. ${amount} to ${payee}. eSewa will NEVER call or ask for this code. If someone is guiding you, STOP.`;
   }
 
   return `eSewa code: ${otp}. Never share it with anyone.`;

@@ -29,7 +29,7 @@ const scenarios = [
       unusualLocation: true,
       now: noon,
     },
-    expectScore: 100, // highValue 30 + veryHighValue 15 + activeCall 30 + unusualLocation 25
+    expectScore: 106, // highValue 30 + veryHighValue 15 + activeCall 36 + unusualLocation 25
     expectTier: "intervention",
   },
 ];
