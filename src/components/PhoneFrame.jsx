@@ -10,10 +10,10 @@ export default function PhoneFrame() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 grid grid-cols-[180px_410px_180px] items-start justify-center gap-6 p-8">
+    <div className="min-h-screen bg-gray-100 flex items-start justify-between px-6 py-8 gap-4">
 
       {/* Scenario panel — left */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 w-48 shrink-0">
         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Demo scenarios</p>
         {SCENARIOS.map((scenario) => (
           <button

@@ -50,10 +50,10 @@ export default function AdminPanel() {
   const { config, updateWeight } = useRisk();
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 w-56 shrink-0">
       <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Risk weights</p>
 
-      <div className="bg-white rounded-xl shadow-card border border-gray-200 px-3 py-3 flex flex-col gap-4">
+      <div className="bg-white rounded-xl shadow-card border border-gray-200 px-4 py-4 flex flex-col gap-5 max-h-[820px] overflow-y-auto">
         <Section title="Signals">
           {SIGNAL_WEIGHTS.map(({ key, label, max }) => (
             <WeightRow
