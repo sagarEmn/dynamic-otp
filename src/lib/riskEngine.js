@@ -7,13 +7,17 @@ import { DEFAULT_CONFIG } from "./riskConfig.js";
 // Human-readable labels for each signal id (used by the breakdown panel
 // and the dynamic warning messages). Single source of truth.
 export const SIGNAL_LABELS = {
+  // transaction-only
   highValue: "High value transaction",
   veryHighValue: "Very high value",
+  // environmental (shared by login + transaction)
   activeCall: "Active phone call",
   newDevice: "New / unrecognized device",
   unusualLocation: "Unusual location",
   unusualTime: "Unusual time (odd hours)",
-  // behavioral
+  // login-only
+  failedAttempts: "Repeated failed password attempts",
+  // behavioral (during OTP entry)
   paste: "OTP pasted (not typed)",
   noPause: "No pause to read warning",
   tooFast: "Superhuman typing speed",
@@ -33,31 +37,19 @@ export function tierForScore(score, config = DEFAULT_CONFIG) {
   return "stealth";
 }
 
-/**
- * Score a transaction's PRE-OTP signals.
- * @param {Object} input
- *   amount {number}
- *   payeeId {string}
- *   activeCall {boolean}
- *   newDevice {boolean}
- *   unusualLocation {boolean}
- *   now {Date}  (optional — defaults to current clock; injectable for tests)
- * @param {Object} config
- * @returns {{ score:number, firedSignals:Array<{id,label,points}>, tier:string }}
- */
-export function scoreTransaction(input, config = DEFAULT_CONFIG) {
-  const { weights, amount } = config;
-  const firedSignals = [];
+// Build a {score, firedSignals, tier} result from a list of fired signals.
+function buildResult(firedSignals, config) {
+  const score = firedSignals.reduce((sum, s) => sum + s.points, 0);
+  return { score, firedSignals, tier: tierForScore(score, config) };
+}
 
-  const add = (id, points) => {
-    firedSignals.push({ id, label: SIGNAL_LABELS[id], points });
-  };
-
-  const amt = Number(input.amount) || 0;
-
-  if (amt > amount.highValueThreshold) add("highValue", weights.highValue);
-  if (amt > amount.veryHighValueThreshold)
-    add("veryHighValue", weights.veryHighValue);
+// The environmental signals shared by BOTH authentication phases (login and
+// transaction): active call, new device, unusual location, unusual time.
+// Returns the fired-signal objects so each phase can add its own on top.
+function environmentalSignals(input, config) {
+  const { weights } = config;
+  const fired = [];
+  const add = (id, points) => fired.push({ id, label: SIGNAL_LABELS[id], points });
 
   if (input.activeCall) add("activeCall", weights.activeCall);
   if (input.newDevice) add("newDevice", weights.newDevice);
@@ -66,8 +58,48 @@ export function scoreTransaction(input, config = DEFAULT_CONFIG) {
   if (input.unusualTime || isUnusualTime(input.now))
     add("unusualTime", weights.unusualTime);
 
-  const score = firedSignals.reduce((sum, s) => sum + s.points, 0);
-  return { score, firedSignals, tier: tierForScore(score, config) };
+  return fired;
+}
+
+/**
+ * Score the LOGIN authentication phase.
+ * Signals: environmental (call/device/location/time) + repeated failed
+ * password attempts. No amount — there's no transaction yet.
+ * @param {Object} input  { activeCall, newDevice, unusualLocation, unusualTime,
+ *                          failedAttempts:boolean, now }
+ * @param {Object} config
+ * @returns {{ score, firedSignals, tier }}
+ */
+export function scoreLogin(input, config = DEFAULT_CONFIG) {
+  const fired = environmentalSignals(input, config);
+  if (input.failedAttempts)
+    fired.push({
+      id: "failedAttempts",
+      label: SIGNAL_LABELS.failedAttempts,
+      points: config.loginWeights.failedAttempts,
+    });
+  return buildResult(fired, config);
+}
+
+/**
+ * Score the TRANSACTION authentication phase.
+ * Signals: environmental (call/device/location/time) + amount (high/very-high).
+ * @param {Object} input  { amount, activeCall, newDevice, unusualLocation,
+ *                          unusualTime, now }
+ * @param {Object} config
+ * @returns {{ score, firedSignals, tier }}
+ */
+export function scoreTransaction(input, config = DEFAULT_CONFIG) {
+  const { weights, amount } = config;
+  const fired = environmentalSignals(input, config);
+  const add = (id, points) => fired.push({ id, label: SIGNAL_LABELS[id], points });
+
+  const amt = Number(input.amount) || 0;
+  if (amt > amount.highValueThreshold) add("highValue", weights.highValue);
+  if (amt > amount.veryHighValueThreshold)
+    add("veryHighValue", weights.veryHighValue);
+
+  return buildResult(fired, config);
 }
 
 /**

@@ -26,3 +26,21 @@ export const buildSmsMessage = ({ tier, transaction, firedSignals, otp }) => {
 
   return `eSewa code: ${otp}. Never share it with anyone.`;
 };
+
+// Login-phase SMS — no transaction context yet, so it speaks to the login
+// itself and the environmental signals that fired.
+export const buildLoginSmsMessage = ({ tier, firedSignals, otp }) => {
+  const signalSummary = summarizeSignals(firedSignals);
+
+  if (tier === "caution") {
+    const details = signalSummary ? ` We noticed: ${signalSummary}.` : "";
+    return `eSewa login code: ${otp}.${details} If this wasn't you, do not share it.`;
+  }
+
+  if (tier === "intervention") {
+    const details = signalSummary ? ` Detected: ${signalSummary}.` : "";
+    return `eSewa login code: ${otp} — unusual sign-in attempt.${details} eSewa will NEVER call or ask for this code. If someone is guiding you, STOP.`;
+  }
+
+  return `eSewa login code: ${otp}. Never share it with anyone.`;
+};

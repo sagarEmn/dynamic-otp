@@ -2,7 +2,7 @@
 // Proves the three demo scenarios land in their intended tiers EVERY time.
 // If any weight in riskConfig.js changes, re-run this.
 
-import { scoreTransaction, applyBehavioral } from "./riskEngine.js";
+import { scoreTransaction, scoreLogin, applyBehavioral } from "./riskEngine.js";
 
 // A fixed daytime clock so "unusual time" never fires during tests
 // (otherwise a test run after 11pm would add 10 points and break scenario A).
@@ -75,6 +75,42 @@ console.log("\nBehavioral re-escalation\n");
   log(
     r.score === 75 && r.tier === "intervention",
     `Caution + paste  ->  score ${r.score} (want 75), tier ${r.tier} (want intervention)`,
+  );
+}
+
+// Login phase — environmental signals + failed attempts, no amount.
+console.log("\nLogin phase\n");
+{
+  const safe = scoreLogin({ now: noon });
+  log(
+    safe.score === 0 && safe.tier === "stealth",
+    `Normal login  ->  score ${safe.score} (want 0), tier ${safe.tier} (want stealth)`,
+  );
+
+  // Unusual location (25) -> still below caution (31) on its own.
+  const loc = scoreLogin({ unusualLocation: true, now: noon });
+  log(
+    loc.score === 25 && loc.tier === "stealth",
+    `Login from unusual location  ->  score ${loc.score} (want 25), tier ${loc.tier} (want stealth)`,
+  );
+
+  // Unusual location (25) + failed attempts (30) = 55 -> caution.
+  const fail = scoreLogin({ unusualLocation: true, failedAttempts: true, now: noon });
+  log(
+    fail.score === 55 && fail.tier === "caution",
+    `Unusual location + failed attempts  ->  score ${fail.score} (want 55), tier ${fail.tier} (want caution)`,
+  );
+
+  // New device (25) + unusual location (25) + failed attempts (30) = 80 -> intervention.
+  const takeover = scoreLogin({
+    newDevice: true,
+    unusualLocation: true,
+    failedAttempts: true,
+    now: noon,
+  });
+  log(
+    takeover.score === 80 && takeover.tier === "intervention",
+    `New device + unusual location + failed attempts  ->  score ${takeover.score} (want 80), tier ${takeover.tier} (want intervention)`,
   );
 }
 

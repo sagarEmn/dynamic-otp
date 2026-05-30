@@ -25,6 +25,11 @@ export const DEFAULT_CONFIG = {
     unusualTime: 15, // odd hours (toggle or system clock)
   },
 
+  // --- Login-phase signal weights ---
+  loginWeights: {
+    failedAttempts: 30, // 2+ wrong password attempts before success
+  },
+
   // --- Behavioral signal weights (added live during authentication) ---
   behavioralWeights: {
     paste: 20, // primary, reliable

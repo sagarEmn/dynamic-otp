@@ -3,7 +3,7 @@
 // processing + OTP screens read. Plain Context + useState — no Redux needed.
 
 import { useCallback, useMemo, useState } from "react";
-import { scoreTransaction, applyBehavioral } from "../lib/riskEngine.js";
+import { scoreTransaction, scoreLogin, applyBehavioral } from "../lib/riskEngine.js";
 
 import { DEFAULT_CONFIG } from "../lib/riskConfig.js";
 import { EMPTY_TRANSACTION } from "./riskConstants.js";
@@ -44,6 +44,12 @@ export function RiskProvider({ children }) {
     firedSignals: [],
     tier: "stealth",
   });
+  // Login-phase scoring result, computed on Login submit.
+  const [loginResult, setLoginResult] = useState({
+    score: 0,
+    firedSignals: [],
+    tier: "stealth",
+  });
   // Behavioral signal ids fired live on the OTP screen.
   const [behavioralIds, setBehavioralIds] = useState([]);
 
@@ -60,6 +66,16 @@ export function RiskProvider({ children }) {
     [config],
   );
 
+  // Score the login phase from environmental signals + failed attempts.
+  const runLoginScoring = useCallback(
+    (loginInput) => {
+      const result = scoreLogin({ ...loginInput, now: new Date() }, config);
+      setLoginResult(result);
+      return result;
+    },
+    [config],
+  );
+
   // Add a behavioral signal (idempotent per id) — triggers live re-tier.
   const addBehavioral = useCallback((id) => {
     setBehavioralIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
@@ -68,6 +84,7 @@ export function RiskProvider({ children }) {
   const resetFlow = useCallback(() => {
     setTransaction(EMPTY_TRANSACTION);
     setBaseResult({ score: 0, firedSignals: [], tier: "stealth" });
+    setLoginResult({ score: 0, firedSignals: [], tier: "stealth" });
     setBehavioralIds([]);
     setSimulation({
       activeCall: false,
@@ -95,7 +112,9 @@ export function RiskProvider({ children }) {
       baseResult,
       behavioralIds,
       result,
+      loginResult,
       runScoring,
+      runLoginScoring,
       addBehavioral,
       resetFlow,
     }),
@@ -109,7 +128,9 @@ export function RiskProvider({ children }) {
       baseResult,
       behavioralIds,
       result,
+      loginResult,
       runScoring,
+      runLoginScoring,
       addBehavioral,
       resetFlow,
     ],

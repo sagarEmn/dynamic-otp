@@ -9,7 +9,7 @@ export default function PhoneFrame() {
   const launch = (scenario) => {
     // `nonce` makes location.state a fresh value on every click so the form's
     // effect re-runs even when re-applying the same scenario on the same route.
-    navigate("/", { state: { scenarioForm: scenario.form, nonce: Date.now() } });
+    navigate("/send", { state: { scenarioForm: scenario.form, nonce: Date.now() } });
   };
 
   return (
