@@ -105,11 +105,16 @@ export function RiskProvider({ children }) {
   // Derived base (pre-OTP) result — re-scores whenever the captured input OR
   // the live config (weights/thresholds) changes. This is what makes a weight
   // slider escalate the transaction OTP screen live during the demo.
+  // Always score from the LIVE simulation toggles (amount/payee come from the
+  // captured txInput, or an empty transaction before Proceed). This means
+  // toggling a signal on the OTP page re-scores live in BOTH directions —
+  // including off→on when the transaction started out stealth.
   const baseResult = useMemo(
     () =>
-      txInput
-        ? scoreTransaction({ ...txInput, ...simulation }, config)
-        : { score: 0, firedSignals: [], tier: "stealth" },
+      scoreTransaction(
+        { ...EMPTY_TRANSACTION, ...txInput, ...simulation, now: txInput?.now ?? new Date() },
+        config,
+      ),
     [txInput, simulation, config],
   );
 
