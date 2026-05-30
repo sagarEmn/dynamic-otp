@@ -9,19 +9,37 @@ const summarizeSignals = (firedSignals) => {
   return labels.join(", ");
 };
 
+// Build a short "where from" clause from the ORIGIN signals only (new device,
+// unusual location) — the ones that tell the user where the attempt is coming
+// from. We deliberately leave out the call/behavioral signals (the on-screen
+// banner already lists everything); the SMS just gains the origin context so a
+// user reading it on their phone can spot "that's not me / not here".
+const originClause = (firedSignals = []) => {
+  const has = (id) => firedSignals.some((s) => s.id === id);
+  const newDevice = has("newDevice");
+  const unusualLocation = has("unusualLocation");
+
+  if (newDevice && unusualLocation) return " from a new device in an unusual location";
+  if (newDevice) return " from a new device";
+  if (unusualLocation) return " from an unusual location";
+  return "";
+};
+
 // The on-screen banner already lists the fired signals (active call, unusual
-// location, etc.), so the SMS deliberately does NOT repeat them — it focuses on
-// the transaction facts (amount + recipient) and the core anti-fraud warning.
-export const buildSmsMessage = ({ tier, transaction, otp }) => {
+// location, etc.). The SMS focuses on the transaction facts (amount + recipient)
+// plus a short ORIGIN clause (new device / unusual location) so the user can
+// tell where the attempt is coming from — and the core anti-fraud warning.
+export const buildSmsMessage = ({ tier, transaction, firedSignals, otp }) => {
   const amount = formatAmount(transaction?.amount);
   const payee = transaction?.payeeName || transaction?.payeeId || "recipient";
+  const origin = originClause(firedSignals);
 
   if (tier === "caution") {
-    return `eSewa code: ${otp} for Rs. ${amount} to ${payee}. Share with no one.`;
+    return `eSewa code: ${otp} for Rs. ${amount} to ${payee}${origin}. Share with no one.`;
   }
 
   if (tier === "intervention") {
-    return `eSewa code: ${otp} — Rs. ${amount} to ${payee}. eSewa will NEVER call or ask for this code. If someone is guiding you, STOP.`;
+    return `eSewa code: ${otp} — Rs. ${amount} to ${payee}${origin}. eSewa will NEVER call or ask for this code. If someone is guiding you, STOP.`;
   }
 
   return `eSewa code: ${otp}. Never share it with anyone.`;

@@ -53,14 +53,19 @@ export default function OtpScreen() {
     [result.tier, result.firedSignals],
   );
 
+  // When an active call fired, the live fraud is someone coaching the user ON
+  // the call — so the acknowledgement asks them to assert that no one is.
+  const onActiveCall = result.firedSignals.some((s) => s.id === "activeCall");
+
   const smsMessage = useMemo(
     () =>
       buildSmsMessage({
         tier: result.tier,
         transaction,
+        firedSignals: result.firedSignals,
         otp: DEMO_OTP,
       }),
-    [result.tier, transaction],
+    [result.tier, transaction, result.firedSignals],
   );
 
   const canVerify = (() => {
@@ -154,7 +159,9 @@ export default function OtpScreen() {
                 checked={acknowledged}
                 onChange={(event) => setAcknowledged(event.target.checked)}
               />
-              I understand this payment is high risk and I want to continue.
+              {onActiveCall
+                ? "No one on this call is guiding me to enter this OTP — I'm doing this myself."
+                : "I understand this payment is high risk and I want to continue."}
             </label>
           ) : null}
 
@@ -189,7 +196,9 @@ export default function OtpScreen() {
                     }))
                   }
                 />
-                I will never share my OTP with anyone.
+                {onActiveCall
+                  ? "No one on this call told me to enter this OTP."
+                  : "I will never share my OTP with anyone."}
               </label>
             </div>
           ) : null}
