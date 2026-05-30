@@ -1,32 +1,24 @@
 # Implementation Plan — Build Guide
 
-> A step-by-step guide to building the project. Mostly words; code only where a snippet is genuinely clearer than prose. Follow top to bottom. Pairs with `spec-rules.md` (the numbers), `design-system.md` (the look), and `project-narrative.md` (the why).
+> A step-by-step guide to building the project. Mostly words; code only where a snippet is genuinely clearer than prose. Follow top to bottom. Pairs with `project-narrative.md` (the why).
 
 ---
 
-## How This Plan Is Organized — The 5 Phases
+## How This Plan Is Organized — The Phases
 
-The build is split into **five phases**, each ending on a clear **exit criterion** — don't start the next phase until the current one's exit criterion is met. Phases are ordered by dependency *and* by demo priority: if time runs out, the earlier phases alone make a complete, demoable product.
+The build is split into phases, each ending on a clear **exit criterion** — don't start the next phase until the current one's exit criterion is met. Phases are ordered by dependency *and* by demo priority: if time runs out, the earlier phases alone make a complete, demoable product.
 
-| Phase | Name | Steps | What it delivers | Exit criterion |
-|-------|------|-------|------------------|----------------|
-| **1** | The Brain & The Plumbing | 0–3 | Setup, phone frame, routing, RiskContext, and the tested risk engine | Engine returns the correct tier for demo scenarios A/B/C, every time |
-| **2** | The Flow Skeleton | 4–5 | Transaction form (+ sim panel) and the processing beat — the path *into* the OTP screen | Filling the form lands you on a 1.5s processing screen with a score in context |
-| **3** | The Core — OTP Screen, All Three Modes ⭐ | 6–7 | Stealth, Caution, and Intervention modes of the one OTP screen | Scenarios A/B/C each render the correct mode with the correct friction |
-| **4** | The Reinforcements | 8–11 | SMS popup, behavioral re-escalation, risk breakdown panel, success screen | Each tier shows a fact-specific SMS; pasting in Caution escalates live to Intervention |
-| **5** | The Product Story | 12 | Admin / risk-policy dashboard (internal eSewa-team tool) | Changing a weight slider changes how the same transaction is scored, live |
+| Phase | Name | What it delivers | Exit criterion |
+|-------|------|------------------|----------------|
+| **1** | The Brain & The Plumbing | Setup, phone frame, routing, RiskContext, tested risk engine | Engine returns the correct tier for the demo scenarios, every time |
+| **2** | The Flow Skeleton | Transaction form (+ sim panel) and the processing beat | Filling the form lands you on a 1.5s processing screen with a score in context |
+| **3** | The Core — OTP Screen, All Three Modes ⭐ | Stealth, Caution, Intervention modes of the one OTP screen | Scenarios render the correct mode with the correct friction |
+| **4** | The Reinforcements | SMS popup, behavioral re-escalation, risk breakdown, success screen | Each tier shows a fact-specific SMS; pasting in Caution escalates live |
+| **4.5** | Demo Experience | Scenario presets, pre-filled form, simulation panel, live weights panel | One-tap scenarios land in the right tier; sliders re-score live |
+| **5** | Authentication Phase (Login) ⭐ | Login screen + phase-split engine + phase-aware panels | A risky login shows an escalating warning + login OTP; a safe login is frictionless |
+| **6** | The Product Story | Polish, docs, demo rehearsal | The two-act demo runs cleanly end to end |
 
-**Where you win:** Phase 3 is the heart. Everything in Phases 1–2 is setup *for* it; everything in Phase 4 *reinforces* it. Phase 5 is genuinely optional — build it only after the core is polished and rehearsed.
-
-**The cutline:** a fully-working Phases 1–3 plus the SMS popup (first step of Phase 4) is a complete winning demo on its own. Everything after that makes the idea *undeniable*, not *present*.
-
----
-
-# Phase 1 — The Brain & The Plumbing
-
-> **Steps 0–3.** Setup, phone frame, routing, RiskContext, and the tested risk engine. This is all foundation — no themed screens yet. The phase ends on the one non-negotiable gate: the engine must score the three demo scenarios into their correct tiers, every single time.
->
-> **Exit criterion:** `scoreTransaction` returns Stealth for A (0), Caution for B (55), Intervention for C (90) — verified against the table in `spec-rules.md`. Do not start Phase 2 until this passes.
+**Where you win:** Phase 3 is the heart of the *warning UX*; Phase 5 is what makes the project answer the challenge's "during authentication" wording head-on. Everything in between reinforces the core.
 
 ---
 
@@ -36,254 +28,166 @@ The build is split into **five phases**, each ending on a clear **exit criterion
 |---------|--------|-----|
 | Build tool | **Vite** | Instant dev server, fast HMR |
 | Framework | **React** | Component states map to our screens/modes |
-| Styling | **Tailwind CSS** | Reskin 3 themes fast; full control of eSewa look |
-| Routing | **React Router** | 4 pages + admin route |
-| State sharing | **React Context** | Pass score + signals to OTP screen |
+| Styling | **Tailwind CSS v4** | Reskin tiers fast; full control of eSewa look. Tokens in `@theme` (`index.css`) |
+| Routing | **React Router** | Login + transaction + processing + OTP + success + admin |
+| State sharing | **React Context** | Pass score + signals + simulation toggles to every screen |
 | Icons | **Lucide React** | Thin-line, matches eSewa |
-| Component library | **None upfront** | Plain Tailwind for core. Add shadcn only if the admin sliders need it later (or use native range inputs) |
-| Persistence | **localStorage** (optional, stretch) | Known-payee memory |
+| Persistence | none required | Everything runs client-side, in memory |
 
 No backend. Everything runs client-side.
 
 ---
 
+# Phase 1 — The Brain & The Plumbing
+
+**Exit criterion:** `scoreTransaction` and `scoreLogin` return the correct tier for the demo scenarios, verified by `src/lib/riskEngine.test.mjs`. Do not start Phase 2 until this passes.
+
 ## Step 0 — Project Setup
-
-1. Scaffold a Vite + React project in this folder (the `.md` docs stay alongside `src/`).
-2. Install Tailwind CSS and configure it (content paths → `index.html` + `src/**`).
-3. Add the eSewa color tokens from `design-system.md` into the Tailwind config (`theme.extend.colors`): `esewa.green`, `esewa.dark`, plus the `caution` and `danger` palettes.
-4. Install React Router and Lucide React.
-5. Load Poppins (or Inter) via a Google Fonts link in `index.html`; set it as the default font in Tailwind.
-
-You should be able to run the dev server and see a blank styled page before moving on.
-
----
+- Scaffold Vite + React.
+- Install Tailwind v4, React Router, Lucide React.
+- Put the eSewa design tokens (colors, font weights, radii, shadows) in `@theme` in `src/index.css` — single source of truth for the whole UI.
 
 ## Step 1 — The Phone Frame & Routing
-
-**Goal:** one fixed phone-sized canvas, with all screens swapping inside it.
-
-- Create an **app frame wrapper**: gray full-screen background, a centered white rounded card (~410px wide, min-height ~844px). Everything renders inside this card. (Exact classes are in `design-system.md`.)
-- Set up **React Router** with these routes, all rendered *inside* the frame:
-  - `/` → Transaction Form
+- `PhoneFrame` wrapper: gray page, centered white phone card (~410px). Every screen renders inside via `<Outlet/>`.
+- Routes (all inside the frame):
+  - `/` → Login (entry point)
+  - `/send` → Transaction Form
   - `/processing` → Processing
-  - `/otp` → OTP Screen
+  - `/otp` → Transaction OTP
   - `/success` → Success
-  - `/admin` → Admin Dashboard (separate, internal-looking — build last)
-- Navigation between screens is just `navigate('/processing')` etc. after each step.
-
-**Done when:** you can click through empty placeholder screens in order.
-
----
+  - `/admin` → (optional internal tool)
 
 ## Step 2 — The Risk Context (shared state)
-
-**Goal:** one place that holds the transaction inputs, the computed score, the triggered signals, and the current tier — readable by any screen.
-
-- Create a **RiskContext** that stores: the transaction data (amount, payee, toggles), the `score`, the list of `firedSignals`, and the derived `tier`.
-- Wrap the whole app in its provider.
-- The form writes into it; the OTP screen reads from it.
-
-Keep it plain React Context + `useState` — no Redux needed at this scale.
-
----
+- `RiskContext` holds: transaction inputs, the computed results (login + transaction), fired behavioral signals, the shared **simulation toggles**, and the tunable **config**.
+- Wrap the app in its provider. Memoize all callbacks with `useCallback` and the context value with `useMemo` (avoids render loops when effects depend on context functions).
 
 ## Step 3 — The Risk Engine (the brain)
+- `src/lib/riskEngine.js` — **pure functions**, input → `{ score, firedSignals, tier }`.
+- Shared `environmentalSignals()` helper feeds both phase scorers:
+  - `scoreLogin()` = environmental + failed attempts
+  - `scoreTransaction()` = environmental + amount
+- Weights/thresholds live in `src/lib/riskConfig.js` so the weights panel can override them live.
+- **Test first** against the scenarios in `riskEngine.test.mjs`. Do not proceed until green.
 
-**Goal:** a pure function that takes the signals and returns `{ score, firedSignals, tier }`. Build and test this BEFORE any pretty screens — it's the core logic.
-
-- Put it in `src/lib/riskEngine.js` as a **pure function** (input → output, no side effects). Pure = trivial to test against the demo scenarios.
-- It applies the **weights from `spec-rules.md`**, sums the points, collects which signals fired (for the breakdown panel + dynamic messages), and maps the total to a tier via the thresholds.
-- Keep the **weights and thresholds in a separate config object** at the top of the file (or its own module) so the Admin Dashboard can later read/override them.
-- A small `knownPayees.js` list decides "new payee" (anything not in the list).
-
-A snippet, since the shape matters and is short:
-
-```js
-// the only structure worth showing — the return shape every screen depends on
-function scoreTransaction(input, config) {
-  // ...sum weighted points, collect fired signals...
-  return { score, firedSignals, tier }; // tier: 'stealth' | 'caution' | 'intervention'
-}
-```
-
-**Test it first:** run the three demo scenarios through it and confirm 0 → stealth, 55 → caution, 90 → intervention (the verification table in `spec-rules.md`). Do not proceed until this passes.
-
-> ✅ **Phase 1 exit criterion met** when this test passes. The brain works and is proven. Now build the screens around it.
+> ✅ **Phase 1 exit criterion met** when the tests pass.
 
 ---
 
 # Phase 2 — The Flow Skeleton
 
-> **Steps 4–5.** The transaction form (with the simulation panel) and the 1.5s processing beat — the path that carries the user *into* the OTP screen. These are the supporting screens around the core; keep them faithful to eSewa but don't over-polish — the OTP screen in Phase 3 is where the hours belong.
->
-> **Exit criterion:** filling the form and pressing Proceed lands you on the processing screen for 1.5s, with the score and fired signals already computed in RiskContext, then auto-advances to `/otp`.
+**Exit criterion:** filling the form and pressing Proceed lands you on the processing screen for 1.5s, with the score and fired signals computed in RiskContext, then auto-advances to `/otp`.
 
----
+## Step 4 — Transaction Form (`/send`)
+- eSewa "Send Money" clone: **eSewa ID** (pre-filled), **Amount** (quick-pick chips 50/100/1000/5000/40,000), **Purpose**, **Remarks**, full-width green **Proceed**.
+- On Proceed: write inputs + the shared simulation toggles into RiskContext, score, navigate to `/processing`.
 
-## Step 4 — Screen 1: Transaction Form
+## Step 5 — Processing
+- Centered eSewa-green spinner + *"Verifying transaction security…"* `setTimeout` 1.5s → `/otp`.
 
-**Goal:** the eSewa "Send Money" clone that captures inputs.
-
-- Build the fields with plain Tailwind, matching `design-system.md`: **eSewa ID**, **Amount** (with quick-pick chips 50/100/500/1000/5000), **Purpose** (dropdown), **Remarks**, and a full-width green **Proceed** button.
-- Add a **clearly-separate simulation panel** (visually distinct, e.g. a bordered "Demo controls" box) with toggles: active call, new device, location (usual/unusual). Unusual time is auto-read from the clock — no toggle.
-- On **Proceed**: write all inputs into RiskContext, call the risk engine, store the result, then navigate to `/processing`.
-
-**Done when:** filling the form and pressing Proceed lands you on processing with a score computed in context.
-
----
-
-## Step 5 — Screen 2: Processing
-
-**Goal:** the deliberate 1.5s beat.
-
-- A centered eSewa-green spinner + text: *"Verifying transaction security..."*
-- Use a `setTimeout` (1.5s, per `spec-rules.md`) then `navigate('/otp')`.
-- The score is already computed (Step 4), so this is purely for feel.
-
-**Done when:** it shows for 1.5s then auto-advances to the OTP screen.
-
-> ✅ **Phase 2 exit criterion met** when the form → processing → OTP path works end to end with a real score in context.
+> ✅ **Phase 2 exit criterion met** when form → processing → OTP works with a real score in context.
 
 ---
 
 # Phase 3 — The Core: OTP Screen, All Three Modes ⭐
 
-> **Steps 6–7. This is where the project wins or loses.** The same screen renders in three completely different ways depending on tier — the direct answer to the habituation problem. Stealth first (get the clean baseline perfect), then Caution and Intervention. Spend most of your hours here.
->
-> **Exit criterion:** demo scenarios A/B/C each render the correct mode — Stealth (clean), Caution (amber, acknowledge-to-proceed), Intervention (red takeover, timer + checkboxes + locked OTP) — with the correct friction in each.
+**Exit criterion:** the demo scenarios each render the correct mode — Stealth (clean), Caution (amber, acknowledge-to-proceed), Intervention (red takeover, timer + checkboxes + locked OTP).
 
----
+## Step 6 — OTP Screen, Stealth first
+- Read `tier` from RiskContext. Render Stealth: normal green/white, 6-box OTP input, subtle banner.
+- On submit, validate the demo OTP (`123456`), navigate to `/success`.
 
-## Step 6 — Screen 3: OTP Screen — Stealth first
+## Step 7 — Caution & Intervention modes
+- Branch rendering on `tier`.
+- **Caution:** amber theme; banner text built from `firedSignals`; OTP disabled until an acknowledge tick.
+- **Intervention:** red/dark takeover; verbose dynamic message; ~10s countdown; confirmation checkboxes; OTP locked until timer ends AND checkboxes ticked.
+- Build the **dynamic message** (`bannerMessage.js`) as a helper turning `firedSignals` into readable sentences — reused by banner and SMS.
 
-**Goal:** get the clean baseline perfect before adding escalation.
-
-- Read `tier` from RiskContext. For now, render the **Stealth** version: normal eSewa green/white, a 6-digit OTP input, a small subtle banner *"Never share your OTP with anyone."*
-- Build the OTP input as 6 boxes (or one masked input — boxes look better).
-- On submit, validate against the demo OTP (`spec-rules.md`), then navigate to `/success`.
-
-**Done when:** a low-risk transaction shows a clean OTP screen and completes.
-
----
-
-## Step 7 — OTP Screen — Caution & Intervention modes
-
-**Goal:** the same screen, two more themed states. This is the core feature.
-
-- Branch the OTP screen's rendering on `tier`. Three sub-components (StealthOtp / CautionOtp / InterventionOtp) keep it clean.
-- **Caution:** amber theme; a warning banner whose **text is built from `firedSignals`** (e.g. "large payment to a first-time recipient"); the OTP input is disabled until the user ticks an **acknowledge** action.
-- **Intervention:** red/dark takeover; a verbose dynamic message; a **countdown timer** (~10s); **confirmation checkboxes**; the **OTP input stays hidden/locked** until the timer hits zero AND all checkboxes are ticked.
-- Build the **dynamic message** as a helper that turns `firedSignals` into readable sentences — one source of truth, reused by the banner and (later) the SMS.
-
-**Done when:** scenarios A/B/C each render the correct mode with the correct friction.
-
-> ✅ **Phase 3 exit criterion met** when all three modes render correctly for A/B/C. **This is the minimum winning demo** — everything from here strengthens it but is not required for a complete story.
+> ✅ **Phase 3 exit criterion met** when all three modes render correctly. **This is the minimum winning warning UX.**
 
 ---
 
 # Phase 4 — The Reinforcements
 
-> **Steps 8–11.** Features that make the core *undeniable*: the SMS second layer, live behavioral re-escalation (the wow moment), the visible risk-breakdown math, and the success screen that closes the loop. Build in this order — the SMS popup is part of the cutline and comes first; behavioral re-escalation is the highest reward but also the riskiest to demo live (lead with paste detection, the reliable signal).
->
-> **Exit criterion:** each tier produces a different, fact-specific SMS over the matching OTP screen; pasting into a Caution-tier OTP field visibly escalates the screen to Intervention; the breakdown panel shows the math; success closes the flow.
+**Exit criterion:** each tier produces a different, fact-specific SMS over the matching OTP screen; pasting into a Caution-tier OTP field escalates to Intervention; the breakdown panel shows the math; success closes the flow.
 
----
-
-## Step 8 — The SMS Popup (overlay)
-
-**Goal:** the second layer, rendered over the OTP screen.
-
-- A fixed-position notification component that slides in from the top of the phone frame. Sender "eSewa". Not a route — it's an overlay shown on top of the OTP screen.
-- Its text is **dynamic and fact-driven**, assembled from `firedSignals` + transaction values, scaling with tier (see `project-narrative.md` §6 and `spec-rules.md`). Reuse the same message helper from Step 7.
-- It shows the demo OTP code — which is what the user types in (ties the two layers together).
-
-**Done when:** each tier produces a different, fact-specific SMS over the matching OTP screen.
-
----
+## Step 8 — SMS Popup (overlay)
+- Fixed-position notification, slides in from the top of the phone (~1.5s delay), sender "eSewa", tap-to-dismiss (swipe right).
+- Text is dynamic and fact-driven, scaling with tier. Separate builders for login vs transaction (`smsMessage.js`).
 
 ## Step 9 — Behavioral Re-escalation (live)
+- On the OTP input detect: paste, no-pause, too-fast, too-many-attempts. Add points and re-tier live.
+- Keep behavioral points in RiskContext so the breakdown reflects them.
 
-**Goal:** the OTP screen reacts to how the user behaves, live.
+## Step 10 — Risk Breakdown Panel
+- Collapsible panel on the OTP screen listing each fired signal, its points, the total, and the tier. Reads straight from `firedSignals` + `score`.
 
-- On the OTP input, detect: **paste** (the `onPaste` event), **no-pause** (timestamp screen load vs first keystroke), **too-fast** entry, and **incorrect attempts** (count). Thresholds and points are in `spec-rules.md`.
-- When a behavioral signal fires, **add its points to the score and re-run the tier check** (the default re-escalation logic). If the tier rises, the OTP screen re-renders into the higher mode — live, in front of the user.
-- Keep behavioral points in RiskContext alongside the base score so the breakdown panel reflects them.
+## Step 11 — Success Screen
+- eSewa-green confirmation with amount + recipient. "Done" resets the flow.
 
-**Done when:** pasting into a Caution-tier OTP field visibly escalates the screen to Intervention.
-
----
-
-## Step 10 — Risk Breakdown Panel & Demo Visibility
-
-**Goal:** make the engine's reasoning visible (credibility).
-
-- A small panel (on the OTP screen, or toggleable) listing each fired signal and its points, the total, and the tier — e.g. the `New payee +25 · High value +30 = 55 → CAUTION` style.
-- This reads straight from `firedSignals` and `score` in context — no new logic.
-
-**Done when:** a judge can see *why* a transaction got its tier.
-
----
-
-## Step 11 — Screen 4: Success
-
-**Goal:** close the loop.
-
-- Simple eSewa-green confirmation: transaction complete, amount, payee. Calm and done.
-- *(Stretch: if the user backs out of an Intervention, route to a "You may have avoided a scam" screen instead.)*
-
-> ✅ **Phase 4 exit criterion met** when the SMS, behavioral re-escalation, breakdown panel, and success screen all work. At this point the demo is fully reinforced — Phase 5 is pure upside.
+> ✅ **Phase 4 exit criterion met** when SMS, behavioral re-escalation, breakdown, and success all work.
 
 ---
 
 # Phase 4.5 — Demo Experience
 
-> **Added during hackathon polish.** These are not core features but make the demo dramatically faster and clearer for judges. Built after Phase 4 was complete.
+> Added during hackathon polish. Not core features, but they make the demo dramatically faster and clearer for judges.
 
-## Step 11.5 — Scenario Control Panel + Form Improvements
+## Step 11.5 — Scenario Presets, Simulation Panel, Live Weights
+- **Scenario panel** (left, outside the phone) — one-tap presets that pre-fill the relevant phase. Data in `src/lib/scenarios.js`.
+- **Simulation panel** (left) — the environmental toggles (call/device/location/time), shared by both phases.
+- **Risk Weights panel** (right, outside the phone) — live sliders per signal weight + tier thresholds, editing the engine config. Changing a slider re-scores instantly.
+- **Pre-filled eSewa ID** and **updated amount chips** so the form is demo-ready on load.
+- **Slot-in animation** on the input values when a scenario fills the form.
 
-**Goal:** let a presenter trigger any demo scenario in one click without manually filling the form.
-
-- A **scenario panel** rendered *outside* the phone frame, floating to the right as a small card — does not take space inside the app UI.
-- Three buttons: **Scenario A** (green), **Scenario B** (amber), **Scenario C** (red) — each pre-fills the entire transaction form (payeeId, amount, toggles) and navigates to `/`.
-- Scenario data lives in `src/lib/scenarios.js` — single source of truth for both the panel and any future use.
-- **Pre-filled eSewa ID** — form defaults to `9801000001` (a known payee) so the field is never empty on load.
-- **Updated amount chips** — `50, 100, 1000, 5000, 40,000` replacing the old set to better match the demo scenarios.
-
-**Done when:** clicking a scenario card pre-fills the form and the correct tier renders after Proceed.
+**Done when:** clicking a scenario pre-fills + lands in the right tier; a slider change re-scores live.
 
 ---
 
-# Phase 5 — The Product Story
+# Phase 5 — Authentication Phase (Login) ⭐
 
-> **Step 12. Genuinely last, genuinely optional.** The admin dashboard reframes the project from "a demo" into "a configurable fraud-policy tool for the eSewa team." It is separate from the consumer payment flow and must look it. Build this **only after the core (Phases 1–4) is polished and rehearsed** — a buggy dashboard hurts more than a missing one.
->
-> **Exit criterion:** changing a weight slider changes how the same sample transaction is scored, live in the test preview.
+> This is what makes the project answer the challenge's "**during authentication**" wording directly. Authentication happens at two moments — login and transaction — and we guard both with one shared engine.
+
+**Exit criterion:** a safe login is frictionless (straight to `/send`); a risky login shows an escalating warning + a login OTP before access is granted; the side panels show login-relevant controls on the login screen.
+
+## Step 12 — Split the engine by phase
+- Extract the shared `environmentalSignals()` helper.
+- `scoreLogin()` = environmental + `failedAttempts`; `scoreTransaction()` = environmental + amount.
+- Add `loginWeights.failedAttempts` to config. Remove the old `newPayee` signal entirely (engine, config, scenarios, banner copy, tests).
+
+## Step 13 — The Login Screen (`/`)
+- eSewa login: **eSewa ID + password** (demo password `password`). Wrong password increments a failed-attempt counter; 2+ before success fires the `failedAttempts` signal.
+- On Login: `scoreLogin()`. Stealth → navigate to `/send`. Caution/Intervention → switch to an in-screen **login OTP** stage reusing Banner, RiskBreakdown, OtpInput, SmsPopup.
+- Back chevron on the login OTP returns to the credentials stage.
+
+## Step 14 — Phase-aware panels
+- `RiskContext` holds `loginResult` + `runLoginScoring`, and `failedAttempts` lifted into the shared `simulation` state.
+- **PhoneFrame** reads the route: on `/` show **login scenarios** (set simulation toggles, stay on login) and on `/send` show **transaction scenarios** (fill the form).
+- **SimulationPanel** adds the "failed passwords" toggle only on login.
+- **AdminPanel** hides amount weights on login and shows the failed-password weight; shows amount weights on transaction. Environmental shared on both. Header reads "Risk weights · Login / Transaction".
+
+> ✅ **Phase 5 exit criterion met** when both authentication acts run with the right controls and the right escalation.
 
 ---
 
-## Step 12 — Admin / Risk-Policy Dashboard (after core works)
+# Phase 6 — The Product Story
 
-**Goal:** the internal eSewa-team tool (enhancement #5).
-
-- Separate `/admin` route, clearly "internal" styling (not the consumer green UX).
-- **Weight sliders** per signal + **threshold inputs** per tier, editing the engine's config object. Use native `<input type="range">` (zero deps) — only reach for shadcn if you want fancier sliders.
-- A **live test preview**: enter sample inputs → show the resulting score + tier instantly (just calls the same `scoreTransaction`).
-- Persist tweaks in localStorage so they survive refresh (optional).
-
-**Done when:** changing a slider changes how the same transaction is scored, live.
+- Wire **back navigation** on every screen with a header.
+- Verify the **full two-act walk-through** (login A/B/C → transaction A/B/C → success) runs cleanly and resets between runs.
+- Keep `project-narrative.md` and this plan in sync with the build.
+- *(Optional)* the `/admin` route as a standalone internal-styled risk-policy tool.
 
 ---
 
-## Build Order Summary (by phase)
+## Build Order Summary
 
-| Phase | Steps | Focus | Role |
-|-------|-------|-------|------|
-| **1 — Brain & Plumbing** | 0–3 | Setup → frame → routing → RiskContext → **risk engine (test against scenarios!)** | The brain — prove it before building screens |
-| **2 — Flow Skeleton** | 4–5 | Form → Processing | Input + the 1.5s beat |
-| **3 — Core OTP ⭐** | 6–7 | **Stealth → Caution → Intervention** | Where you win — most hours here |
-| **4 — Reinforcements** | 8–11 | SMS popup → behavioral re-escalation → breakdown panel → success | Make the core undeniable |
-| **4.5 — Demo Experience** | 11.5 | Scenario panel → pre-filled form → updated chips | One-click demo scenarios for judges |
-| **5 — Product Story** | 12 | Admin dashboard | Configurable fraud-policy tool — only after core works |
+| Phase | Focus | Role |
+|-------|-------|------|
+| **1 — Brain & Plumbing** | Setup → frame → routing → RiskContext → engine (test!) | Prove the brain before building screens |
+| **2 — Flow Skeleton** | Form → Processing | Input + the 1.5s beat |
+| **3 — Core OTP ⭐** | Stealth → Caution → Intervention | The warning UX where you win |
+| **4 — Reinforcements** | SMS → behavioral → breakdown → success | Make the core undeniable |
+| **4.5 — Demo Experience** | Scenario presets, sim panel, live weights | One-click demo control for judges |
+| **5 — Auth Phase ⭐** | Login screen + phase-split engine + phase-aware panels | Answers "during authentication" head-on |
+| **6 — Product Story** | Back nav, rehearsal, docs | A clean, complete two-act demo |
 
-**Rule of thumb:** Phases 1–2 are setup; **Phase 3 is where you win**; Phase 4 is reinforcement; Phase 5 is upside. If time runs short, a fully-working **Phases 1–3 + the SMS popup** beats a half-built dashboard every time. Polish the core before you reach for Phase 5.
+**Rule of thumb:** Phases 1–4 build the context-aware warning UX. Phase 5 makes it a *complete authentication story* (login + transaction). Phase 4.5 and 6 make it demo-proof.
