@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 // then null. Use the token both as a re-mount key for the animated element
 // and as a flag to know an animation is in flight. Manual typing of the
 // same value won't retrigger.
-const ANIMATION_MS = 600;
+const ANIMATION_MS = 750;
 
 export function useSlotAnimation(value) {
   const [token, setToken] = useState(null);
