@@ -34,7 +34,7 @@ export default function PhoneFrame() {
       {/* Left column — scenarios + simulation controls */}
       <div className="flex flex-col gap-6 w-72 shrink-0">
         <div className="flex flex-col gap-4">
-          <p className="text-base font-bold text-gray-400 uppercase tracking-widest">{heading}</p>
+          <p className="text-lg font-bold text-gray-400 uppercase tracking-widest">{heading}</p>
           {scenarios.map((scenario) => (
             <button
               key={scenario.label}

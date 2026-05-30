@@ -18,7 +18,7 @@ export default function SimulationPanel({ isLogin = false }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-base font-bold text-gray-400 uppercase tracking-widest">
+      <p className="text-lg font-bold text-gray-400 uppercase tracking-widest">
         Simulation controls
       </p>
       <div className="bg-white rounded-xl shadow-card border border-esewa-border px-5 py-5 flex flex-col gap-4 text-base font-medium">
