@@ -24,12 +24,6 @@ export const SIGNAL_LABELS = {
   tooManyAttempts: "Too many incorrect attempts",
 };
 
-// "Unusual time" = between 23:00 and 05:00 local time.
-export function isUnusualTime(date = new Date()) {
-  const h = date.getHours();
-  return h >= 23 || h < 5;
-}
-
 // Map a numeric score to a tier using the config thresholds.
 export function tierForScore(score, config = DEFAULT_CONFIG) {
   if (score >= config.tiers.interventionMin) return "intervention";
@@ -54,9 +48,9 @@ function environmentalSignals(input, config) {
   if (input.activeCall) add("activeCall", weights.activeCall);
   if (input.newDevice) add("newDevice", weights.newDevice);
   if (input.unusualLocation) add("unusualLocation", weights.unusualLocation);
-  // Fires if the demo toggle forces it OR the real clock is in odd hours.
-  if (input.unusualTime || isUnusualTime(input.now))
-    add("unusualTime", weights.unusualTime);
+  // Toggle-only: deliberately does NOT read the system clock, so scoring is
+  // deterministic at any hour and the demo is reproducible.
+  if (input.unusualTime) add("unusualTime", weights.unusualTime);
 
   return fired;
 }
