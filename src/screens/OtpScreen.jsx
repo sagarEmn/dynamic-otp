@@ -6,6 +6,7 @@ import ScreenHeader from "../components/ui/ScreenHeader.jsx";
 import Banner from "../components/ui/Banner.jsx";
 import Button from "../components/ui/Button.jsx";
 import SmsPopup from "../components/ui/SmsPopup.jsx";
+import RiskBreakdown from "../components/ui/RiskBreakdown.jsx";
 import { buildSmsMessage } from "../lib/smsMessage.js";
 
 const DEMO_OTP = "123456";
@@ -101,6 +102,12 @@ export default function OtpScreen() {
             {result.tier === "stealth" && "Never share your OTP with anyone."}
             {result.tier !== "stealth" && signalSummary}
           </Banner>
+
+          <RiskBreakdown
+            score={result.score}
+            firedSignals={result.firedSignals}
+            tier={result.tier}
+          />
 
           <div className="flex flex-col gap-2">
             <label className="text-xs text-esewa-textMuted">
