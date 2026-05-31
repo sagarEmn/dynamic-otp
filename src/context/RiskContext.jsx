@@ -126,16 +126,24 @@ export function RiskProvider({ children }) {
     [baseResult, behavioralIds, config],
   );
 
-  // Derived login base result — re-scores whenever the captured input OR the
-  // live config (weights/thresholds) changes. This is what makes a weight
-  // slider escalate the login OTP screen live during the demo.
-  const loginBaseResult = useMemo(
-    () =>
-      loginInput
-        ? scoreLogin(loginInput, config)
-        : { score: 0, firedSignals: [], tier: "stealth" },
-    [loginInput, config],
-  );
+  // Derived login base result — re-scores whenever the captured input, the
+  // live simulation toggles, OR the live config changes. Reading `simulation`
+  // live (not the frozen capture) lets toggling a signal on the login OTP
+  // screen escalate/de-escalate it in real time during the demo — same pattern
+  // as the transaction baseResult.
+  //
+  // `failedAttempts` is special: it can come from the toggle OR from a real 2x
+  // password fumble (captured at submit). Preserve a truthy captured value so a
+  // manual fumble isn't wiped out when the toggle is off.
+  const loginBaseResult = useMemo(() => {
+    if (!loginInput) return { score: 0, firedSignals: [], tier: "stealth" };
+    const merged = {
+      ...loginInput,
+      ...simulation,
+      failedAttempts: simulation.failedAttempts || loginInput.failedAttempts,
+    };
+    return scoreLogin(merged, config);
+  }, [loginInput, simulation, config]);
 
   // Combined login result = base + behavioral, re-tiered — mirrors the
   // transaction `result`, so typing behavior (too fast / slow dictation /
