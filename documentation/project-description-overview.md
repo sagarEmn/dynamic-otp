@@ -1,119 +1,139 @@
-**What I'm Building in One Line** A React web app simulating an eSewa-like OTP authentication flow where warning intensity dynamically escalates based on real-time risk signals detected before and during the OTP screen.
+# Dynamic Alert — Project Description & Overview
+
+**Project / Team:** Dynamic Alert · Shiva Sagar Yadav · eSewa × WWF Hackathon 2026
+
+**One line:** A React web app, styled as the eSewa mobile app, where OTP-warning intensity **dynamically escalates** (Stealth → Caution → Intervention) based on real-time risk signals — guarding **both** authentication moments: **login** and **transaction**. A live risk engine re-scores on the fly, and behavioral signals caught *during* OTP entry can escalate the warning in real time.
+
+> **Why it matters:** a warning everyone ignores is useless. We keep the OTP warning **rare, contextual, and hard to script through** — so the one moment that actually matters finally gets noticed. This directly answers the challenge's "during authentication" wording by guarding *both* auth events with one shared engine.
 
 ---
 
-**Pages**
+## The Two Authentication Phases
 
-**Page 1 — Transaction Form**
+Authentication happens twice, and we guard both with one shared engine:
 
-- Amount input, payee name input
-- Toggles: "Simulate active phone call", "Simulate new device"
-- Unusual time auto-detected from system clock
-- Proceed button triggers risk scoring, moves to processing
-
-**Page 2 — Processing Screen**
-
-- 1.5 second loading animation: "Verifying transaction security..."
-- Risk engine computes score here before next screen loads
-- Makes scoring feel real and deliberate
-
-**Page 3 — OTP Screen (Core Feature)** Three completely different UI states:
-
-- Stealth (low risk): clean minimal UI, subtle banner, zero friction
-- Caution (medium risk): yellow/amber theme, dynamic message based on which specific signals fired, user must acknowledge before proceeding
-- Intervention (high risk): red/dark theme, full attention takeover, countdown timer, confirmation checkboxes, long dynamic message, OTP input hidden until timer ends and checkbox confirmed
-
-**Page 4 — Success Screen**
-
-- Transaction confirmed, simple completion state
-
-**SMS Popup — Overlay Component (NOT a routed page)**
-
-- Renders *on top of* Page 3 (OTP Screen), not as a separate screen — simulates the OTP SMS arriving on the phone while the user is on the OTP screen. Both layers visible at once (this is the point of the two-layer design, see below).
-- Style: Android-style heads-up notification / message bubble sliding from the top. Sender shown as "eSewa".
-- Contains the OTP code + **dynamic, fact-driven** warning text. The message is assembled from the signals that actually fired (amount, payee, location, time), so it differs per transaction. Context scales with tier — Stealth carries none (stay frictionless), Caution adds the single anomaly, Intervention stacks all fired facts + an anti-coercion line. SMS = terse facts; the app UI carries the rich explanation (different voices, not redundant):
-  - Stealth: "eSewa code: 482913. Never share it with anyone."
-  - Caution: "eSewa code: 482913 for Rs. 25,000 to a first-time recipient. Share with no one."
-  - Intervention: "eSewa code: 482913 — Rs. 50,000 to a NEW number, from an unusual location, 2:14 AM. eSewa will NEVER call or ask for this code. If someone is guiding you, STOP."
-- Note: only **pre-OTP** context can appear in the SMS (transaction + environment). Behavioral signals happen after the OTP is sent, so they affect the app UI re-escalation only — never the SMS.
+1. **Login phase** — environmental signals + new-device / unusual-location + repeated failed passwords. A safe login is frictionless; a risky one shows an escalating warning + a login OTP, and a brute-forced one locks the password entirely.
+2. **Transaction phase** — environmental signals + amount (high / very-high value). A normal payment is silent; a risky one escalates the OTP screen.
 
 ---
 
-**Risk Engine**
+## Screens & Routes
 
-- Rule-based scoring: each signal adds weighted points, runs before OTP screen renders
-- Thresholds: 0-30 low, 31-60 medium, 61+ high
-- Score and triggered signals passed via React Context to OTP screen
-- Fast, synchronous — result ready before OTP screen renders
+All screens render inside a phone frame. Routes: `/` (Login), `/send` (Transaction Form), `/processing`, `/otp` (Transaction OTP), `/success`, `/admin`.
 
----
+### Login Screen (`/`) — Act 1
+- **eSewa ID + password** (demo password `jjjj`).
+- **Stealth login** → straight to `/send`, no OTP, zero friction.
+- **Risky login** → in-screen **login OTP** stage (reuses Banner, OTP input, SMS popup, risk breakdown) with tier-appropriate friction.
+- **Password lock + trusted-device approval (step-up):** after **2 wrong passwords** — OR by clicking the **"Repeated failed passwords"** simulation toggle — the password field is **disabled** ("Password login disabled" notice) and the flow routes to a **trusted-device approval** screen ("Approve on your trusted device — *Pixel 7 · Kathmandu*"). The user taps **Approve this sign-in** (or "use the code instead") to reach the login OTP. Rationale: an attacker holding a stolen password can't tap Approve on a phone they don't have.
+- Back navigation returns to the credentials stage.
 
-**Risk Signals**
+### Transaction Form (`/send`)
+- eSewa "Send Money" clone: **eSewa ID** (pre-filled `9801000001`), **Amount** with quick-pick chips (50 / 100 / 1,000 / 5,000 / 40,000 — slot-in animation on tap), **Purpose**, **Remarks**, full-width green **Proceed**.
+- On Proceed: captures inputs + live simulation toggles, scores, navigates to `/processing`.
 
-Transaction anomaly detection:
+### Processing (`/processing`)
+- 1.5s eSewa-green spinner — "Verifying transaction security…" — then auto-advances to `/otp`.
 
-- High value: amount exceeds threshold (e.g. Rs. 10,000)
-- New payee: recipient is first-time
-- Unusual time: transaction at odd hours (auto-detected from clock)
+### OTP Screen (`/otp`) — Core Feature
+Three completely different UI states driven by tier:
+- **Stealth (low risk):** clean minimal UI, subtle "Never share your OTP" banner, zero friction.
+- **Caution (medium risk):** amber theme, dynamic message from the signals that fired, acknowledge checkbox before the OTP unlocks.
+- **Intervention (high risk):** red/dark takeover, verbose dynamic message, ~10s countdown, confirmation checkbox(es), OTP locked until the timer ends **and** boxes are ticked.
+- **Behavioral re-escalation (live):** typing behavior during OTP entry can lift the tier in real time (see below).
 
-Environmental context:
+### Success (`/success`)
+- eSewa-green confirmation with amount + recipient. "Done" resets the flow.
 
-- Active call status (simulated toggle)
-- Device integrity (simulated toggle for new/unrecognized device)
-- Unusual Location or Actual Location so that scammer's can't scam easily without knowing the user's latest location. 
+### Admin (`/admin`)
+- Internal-styled risk-policy view (optional).
 
----
-
-**Behavioral Signals (detected on OTP screen)**
-
-- Paste vs manual entry on OTP field
-- Typing speed — unusually fast entry flagged
-- Did user pause to read the warning or start typing immediately
-- Too many incorrect OTP attempts
-
----
-
-**OTP Warning Modes**
-
-Stealth:
-
-- Goal: zero friction
-- Design: clean, minimal
-- Message: "Never share your OTP with anyone"
-
-Caution:
-
-- Goal: awareness
-- Design: yellow/amber theme
-- Message: dynamic, based on which signals fired
-- Friction: user must acknowledge/confirm before proceeding
-
-Intervention:
-
-- Goal: stop user's flow and break fraudster's script
-- Design: red/dark theme, full attention
-- Message: dynamic, interactive, verbose
-- Friction: countdown timer, confirmation checkboxes, long forced read, OTP input locked until all conditions met
+### SMS Popup — Overlay (not a routed page)
+- Renders *on top of* the OTP screen — an Android-style heads-up notification sliding from the top, sender "eSewa", swipe to dismiss. Both layers visible at once (the two-layer design point). On message change it swipes the old one out and pops the new one in.
+- Text is **dynamic and fact-driven**, scaling with tier, with **separate builders for login vs transaction**.
+  - **Transaction SMS** leads with amount + recipient + an origin clause (new device / unusual location / unusual hour, with a detected city), and a call-aware closing warning.
+  - **Login SMS** leads with concrete **device · location · time** so the owner can spot an attempt that isn't theirs at a glance — e.g. *"eSewa: unusual sign-in blocked. Attempt from Samsung Galaxy A14 · Dhulikhel · 2:14 AM. Your code is 123456. …"*
+- Only **pre-OTP** context appears in the SMS (transaction + environment). Behavioral signals happen after the OTP is sent, so they affect the app-UI re-escalation only — never the SMS.
 
 ---
 
-**Two Intervention Layers**
+## Risk Engine (the brain)
 
-1. App UI — OTP screen transforms entirely based on risk
-2. SMS layer — simulated OTP message popup with dynamic text (e.g. high risk: "eSewa will NEVER call and ask for this code. Large transfer to new recipient detected.")
-
----
-
-**What's Simulated vs Built**
-
-- Built: full React app, risk scoring engine, all three OTP screen modes, behavioral detection, dynamic SMS popup
-- Simulated: active call (toggle), new device (toggle), SMS delivery (mock popup), OTP verification (any 6 digits pass)
+- **Pure functions:** `input → { score, firedSignals, tier }`. Phase-split: `scoreLogin()` and `scoreTransaction()` share an `environmentalSignals()` helper; `applyBehavioral()` adds live behavioral points on top and re-tiers.
+- **Tiers:** 0–30 **stealth**, 31–60 **caution**, 61+ **intervention** (`cautionMin: 31`, `interventionMin: 61`).
+- **Live & derived:** results are **derived** (React `useMemo`) from raw inputs + the live config + the live simulation toggles — *never frozen snapshots*. So a weight slider or a toggle re-scores the **same on-screen OTP** in real time, escalating *or* de-escalating in both directions. This is the "it's not scripted — it's a live engine" demo moment.
+- Weights/thresholds live in `riskConfig.js` so the live **Risk Weights** panel can override them. Several weights are derived from the caution threshold (e.g. `activeCall`, `failedAttempts`, login `unusualTime` = `CAUTION_MIN + 5`) so they always trip caution on their own and stay correct if the threshold moves.
 
 ---
 
-**Demo Scenarios**
+## Risk Signals
 
-- Scenario A: Rs. 500, known payee, no call → Stealth mode. "Legitimate users face zero friction."
-- Scenario B: Rs. 25,000, new payee, no call → Caution mode. "System detects unusual patterns."
-- Scenario C: Rs. 50,000, new payee, active call ON → Intervention mode. "High-risk context triggers maximum friction."
+**Environmental (shared by both phases):**
+- Active phone call (simulated toggle) — `CAUTION_MIN + 5`, always trips caution alone.
+- Unusual time / odd hours (toggle) — weighted *more heavily at login* than at transaction (an odd-hour sign-in alone warrants a login OTP).
 
+**Login-only:**
+- New / unrecognized device (toggle) — where/what-device the sign-in came from is established at login.
+- Unusual location (toggle).
+- Repeated failed passwords — real 2× password fumble **or** the toggle; `CAUTION_MIN + 5`, drives the password-lock + device-approval step-up.
+
+**Transaction-only:**
+- High value (amount > Rs. 10,000) and a very-high-value bonus (> Rs. 40,000).
+
+> Note: there is **no** "new payee" signal — it was removed. Time is **toggle-only**; the app never reads the user's live system clock.
+
+**Behavioral (detected live during OTP entry):**
+- **Paste** vs manual entry.
+- **Too fast** — 6 digits under ~1.5s (superhuman speed) → amber "you're going too fast" + an extra "I've slowed down and checked" checkbox.
+- **No pause** — typing starts < 2s after the screen loads.
+- **Slow dictation** — ~1s gaps between digits **while on an active call** (the "someone is reading me the code" tell) → red intervention.
+- **Too many attempts** — repeated wrong OTP submissions.
+- Behavioral signals also lift the **banner tone** (slow-dictation → red, any other behavioral on a stealth base → amber) so colour stays in sync with the live warning text.
+
+---
+
+## OTP Warning Modes
+
+| Mode | Goal | Design | Friction |
+|------|------|--------|----------|
+| **Stealth** | Zero friction | Clean, minimal | None — "Never share your OTP with anyone." |
+| **Caution** | Awareness | Amber theme | Dynamic message from fired signals; acknowledge checkbox before proceeding |
+| **Intervention** | Break the fraudster's script | Red/dark takeover | Verbose dynamic message; ~10s countdown; confirmation checkbox(es); OTP locked until timer ends + boxes ticked |
+
+---
+
+## Intervention Layers
+
+1. **App UI** — the OTP screen transforms entirely based on risk (theme, message, timer, checkboxes, lock).
+2. **SMS layer** — the simulated OTP message popup with dynamic, fact-driven text.
+3. **Step-up (login)** — the password-lock + trusted-device approval flow for repeated failed passwords.
+
+---
+
+## What's Simulated vs Built
+
+- **Built:** full React + Vite + Tailwind v4 app; phase-split risk-scoring engine (tested); login + transaction flows; all three OTP modes; behavioral detection; dynamic SMS popup (login + transaction builders); password-lock + trusted-device approval; live simulation + Risk Weights panels with real-time re-scoring; risk breakdown panel; success/reset.
+- **Simulated:** active call / new device / unusual location / unusual time / failed passwords (toggles); SMS delivery (mock popup); trusted-device approval (tap to confirm); OTP verification (demo OTP `123456`).
+- **No backend** — everything runs client-side, in memory.
+
+---
+
+## Demo Scenarios (verified scores)
+
+**Login:**
+- Clean login (no toggles) → **0**, Stealth → straight in, no OTP.
+- Active call → **36**, Caution → login OTP, amber.
+- Unusual time → **36**, Caution.
+- Failed passwords alone → **36**, Caution → password lock + device approval.
+- New device + unusual location + failed passwords → **86**, Intervention.
+
+**Transaction:**
+- Rs. 500, normal → **0**, Stealth.
+- Rs. 25,000 + unusual time → **45**, Caution.
+- Rs. 50,000 + active call → **81**, Intervention.
+
+**Behavioral (on a caution base):**
+- + slow-dictation → **61**, Intervention (red).
+- + too-fast → **51**, Caution (amber) + "slow down" checkbox.
+
+> Demo creds: password `jjjj` · OTP `123456`. Full beat-by-beat walkthrough in `demo-script.md`.
