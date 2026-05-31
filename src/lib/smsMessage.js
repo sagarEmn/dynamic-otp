@@ -24,6 +24,16 @@ const originClause = (firedSignals = []) => {
   return "";
 };
 
+// The closing anti-fraud warning. "If someone is guiding you, STOP" only makes
+// sense when an active call is detected (the scammer is live on the phone).
+// Without a call, the threat is account-takeover, so we frame it that way.
+const closingWarning = (firedSignals = []) => {
+  const onCall = firedSignals.some((s) => s.id === "activeCall");
+  return onCall
+    ? "eSewa will NEVER call or ask for this code. If someone is guiding you, STOP."
+    : "Someone may be trying to access your account. eSewa will NEVER ask for this code.";
+};
+
 // The on-screen banner already lists the fired signals (active call, unusual
 // location, etc.). The SMS focuses on the transaction facts (amount + recipient)
 // plus a short ORIGIN clause (new device / unusual location) so the user can
@@ -38,7 +48,7 @@ export const buildSmsMessage = ({ tier, transaction, firedSignals, otp }) => {
   }
 
   if (tier === "intervention") {
-    return `eSewa code: ${otp} — Rs. ${amount} to ${payee}${origin}. eSewa will NEVER call or ask for this code. If someone is guiding you, STOP.`;
+    return `eSewa code: ${otp} — Rs. ${amount} to ${payee}${origin}. ${closingWarning(firedSignals)}`;
   }
 
   return `eSewa code: ${otp}. Never share it with anyone.`;
@@ -57,7 +67,7 @@ export const buildLoginSmsMessage = ({ tier, firedSignals, otp }) => {
 
   if (tier === "intervention") {
     const details = origin ? ` Sign-in${origin}.` : "";
-    return `eSewa OTP: ${otp} — unusual sign-in attempt.${details} eSewa will NEVER call or ask for this code. If someone is guiding you, STOP.`;
+    return `eSewa OTP: ${otp} — unusual sign-in attempt.${details} ${closingWarning(firedSignals)}`;
   }
 
   return `eSewa OTP: ${otp}. Never share it with anyone.`;

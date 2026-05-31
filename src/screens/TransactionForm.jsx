@@ -26,6 +26,20 @@ export default function TransactionForm() {
   const setField = (key, value) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
+  // Slot-in animation — plays ONLY when an amount chip is tapped (not on manual
+  // typing). `amountAnim` holds a token for the duration of one animation, then
+  // clears; used as a re-mount key for the animated overlay and a flag to hide
+  // the real input text while it plays.
+  const [amountAnim, setAmountAnim] = useState(null);
+  const pickAmount = (value) => {
+    setField("amount", String(value));
+    const token = Date.now();
+    setAmountAnim(token);
+    setTimeout(() => {
+      setAmountAnim((current) => (current === token ? null : current));
+    }, 750);
+  };
+
   const normalizedAmount = Number(form.amount) || 0;
   const canProceed = form.payeeId.trim().length > 0 && normalizedAmount > 0;
 
@@ -77,7 +91,15 @@ export default function TransactionForm() {
                 value={form.amount}
                 onChange={(event) => setField("amount", event.target.value)}
                 placeholder="0"
+                style={{ color: amountAnim ? "transparent" : undefined }}
               />
+              {amountAnim ? (
+                <span className="pointer-events-none absolute inset-0 flex items-center px-4 text-base font-medium text-esewa-text overflow-hidden">
+                  <span key={amountAnim} className="slot-in">
+                    {form.amount}
+                  </span>
+                </span>
+              ) : null}
             </div>
           </Field>
 
@@ -86,7 +108,7 @@ export default function TransactionForm() {
               <Chip
                 key={amount}
                 selected={normalizedAmount === amount}
-                onClick={() => setField("amount", String(amount))}
+                onClick={() => pickAmount(amount)}
               >
                 Rs. {amount.toLocaleString("en-IN")}
               </Chip>
