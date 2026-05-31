@@ -93,14 +93,22 @@ console.log("\nLogin phase\n");
     `Login from unusual location  ->  score ${loc.score} (want 25), tier ${loc.tier} (want stealth)`,
   );
 
-  // Unusual location (25) + failed attempts (30) = 55 -> caution.
-  const fail = scoreLogin({ unusualLocation: true, failedAttempts: true, now: noon });
+  // Failed attempts alone (36) -> caution on its own. This is the brute-force
+  // lockout signal that drives the password-lock + device-approval step-up.
+  const failOnly = scoreLogin({ failedAttempts: true, now: noon });
   log(
-    fail.score === 55 && fail.tier === "caution",
-    `Unusual location + failed attempts  ->  score ${fail.score} (want 55), tier ${fail.tier} (want caution)`,
+    failOnly.score === 36 && failOnly.tier === "caution",
+    `Failed attempts alone  ->  score ${failOnly.score} (want 36), tier ${failOnly.tier} (want caution)`,
   );
 
-  // New device (25) + unusual location (25) + failed attempts (30) = 80 -> intervention.
+  // Unusual location (25) + failed attempts (36) = 61 -> intervention.
+  const fail = scoreLogin({ unusualLocation: true, failedAttempts: true, now: noon });
+  log(
+    fail.score === 61 && fail.tier === "intervention",
+    `Unusual location + failed attempts  ->  score ${fail.score} (want 61), tier ${fail.tier} (want intervention)`,
+  );
+
+  // New device (25) + unusual location (25) + failed attempts (36) = 86 -> intervention.
   const takeover = scoreLogin({
     newDevice: true,
     unusualLocation: true,
@@ -108,8 +116,8 @@ console.log("\nLogin phase\n");
     now: noon,
   });
   log(
-    takeover.score === 80 && takeover.tier === "intervention",
-    `New device + unusual location + failed attempts  ->  score ${takeover.score} (want 80), tier ${takeover.tier} (want intervention)`,
+    takeover.score === 86 && takeover.tier === "intervention",
+    `New device + unusual location + failed attempts  ->  score ${takeover.score} (want 86), tier ${takeover.tier} (want intervention)`,
   );
 }
 

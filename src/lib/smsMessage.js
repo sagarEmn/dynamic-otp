@@ -3,9 +3,14 @@ const formatAmount = (amount) => {
   return value.toLocaleString("en-IN");
 };
 
-// Illustrative city for the "unusual location" clause. In a real system this
-// would come from IP/geo lookup; here it's a fixed demo value — swap freely.
+// Illustrative origin details for the alert clauses. In a real system these
+// would come from IP/geo + device fingerprinting; here they're fixed demo
+// values — swap freely.
 const DETECTED_CITY = "Dhulikhel";
+const DETECTED_DEVICE = "Samsung Galaxy A14";
+// Static demo timestamp so the SMS reads naturally without tracking the live
+// clock. Reads as an odd-hour sign-in (reinforces the unusual-time signal).
+const DETECTED_TIME = "2:14 AM";
 
 // Build a short "where/when from" clause from the ORIGIN signals only (new
 // device, unusual location, unusual hour) — the ones that tell the user where
@@ -62,20 +67,34 @@ export const buildSmsMessage = ({ tier, transaction, firedSignals, otp }) => {
   return `eSewa code: ${otp}. Never share it with anyone.`;
 };
 
-// Login-phase SMS — no transaction context yet, so it speaks to the login
-// itself plus the same ORIGIN clause (new device / unusual location) as the
-// transaction SMS, so the user can tell where the sign-in is coming from.
-export const buildLoginSmsMessage = ({ tier, firedSignals, otp }) => {
-  const origin = originClause(firedSignals);
+// Concrete "who/where/when" line for a risky sign-in. Leads with the device,
+// location and time so a user reading it on their phone can immediately tell
+// "that's not my phone / not my city / not now" — far more attention-catching
+// than a generic "unusual sign-in". Falls back to whatever context is present.
+const signInDetails = (firedSignals = []) => {
+  const has = (id) => firedSignals.some((s) => s.id === id);
+  const parts = [];
+  // Device: a new device names the suspicious one; otherwise it's still useful
+  // context on a brute-force/failed-password alert.
+  if (has("newDevice") || has("failedAttempts")) parts.push(DETECTED_DEVICE);
+  if (has("unusualLocation")) parts.push(DETECTED_CITY);
+  if (has("unusualTime")) parts.push(DETECTED_TIME);
+  return parts.join(" · ");
+};
+
+// Login-phase SMS — no transaction context yet, so it speaks to the sign-in
+// itself. For risky sign-ins it leads with concrete device · location · time
+// so the user can spot an attempt that isn't theirs at a glance.
+export const buildLoginSmsMessage = ({ tier, firedSignals = [], otp }) => {
+  const details = signInDetails(firedSignals);
+  const detailLine = details ? ` Attempt from ${details}.` : "";
 
   if (tier === "caution") {
-    const details = origin ? ` Sign-in${origin}.` : "";
-    return `eSewa OTP: ${otp}.${details} If this wasn't you, do not share it.`;
+    return `eSewa OTP: ${otp}.${detailLine} If this wasn't you, do not share this code.`;
   }
 
   if (tier === "intervention") {
-    const details = origin ? ` Sign-in${origin}.` : "";
-    return `eSewa OTP: ${otp} — unusual sign-in attempt.${details} ${closingWarning(firedSignals)}`;
+    return `eSewa: unusual sign-in blocked.${detailLine} Your code is ${otp}. ${closingWarning(firedSignals)}`;
   }
 
   return `eSewa OTP: ${otp}. Never share it with anyone.`;

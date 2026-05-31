@@ -35,7 +35,11 @@ export const DEFAULT_CONFIG = {
 
   // --- Login-phase signal weights ---
   loginWeights: {
-    failedAttempts: 30, // 2+ wrong password attempts before success
+    // 2+ wrong password attempts before success — a brute-force / account-
+    // takeover signal. Sits 5 above the caution threshold so it ALWAYS trips
+    // caution on its own (and drives the password-lock + device-approval step-
+    // up). Derived from CAUTION_MIN so it stays correct if the threshold moves.
+    failedAttempts: CAUTION_MIN + 5,
     // Unusual time weighs MORE at login than at transaction: an odd-hour
     // sign-in alone should warrant a login OTP. Derived from CAUTION_MIN so it
     // alone always clears caution. (Transaction keeps the lighter weights.unusualTime.)

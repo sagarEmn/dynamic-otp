@@ -4,6 +4,7 @@
 // escalating warning + a login OTP before access is granted.
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Lock } from "lucide-react";
 import { useRisk } from "../context/useRisk.js";
 import ScreenHeader from "../components/ui/ScreenHeader.jsx";
 import Banner from "../components/ui/Banner.jsx";
@@ -11,6 +12,7 @@ import Button from "../components/ui/Button.jsx";
 import Input, { Field } from "../components/ui/Input.jsx";
 import SmsPopup from "../components/ui/SmsPopup.jsx";
 import OtpInput from "../components/ui/OtpInput.jsx";
+import DeviceApprovalCard from "../components/ui/DeviceApprovalCard.jsx";
 import { buildBannerMessage, bannerTone } from "../lib/bannerMessage.js";
 import { buildLoginSmsMessage } from "../lib/smsMessage.js";
 
@@ -19,6 +21,11 @@ const DEMO_OTP = "123456";
 const INTERVENTION_TIMER_SECONDS = 10;
 // Average gap between digits (ms) that counts as "dictated" entry on a call.
 const SLOW_DICTATION_GAP_MS = 800;
+// After this many wrong passwords we stop trusting the password entirely:
+// disable it, notify the trusted device, and fall back to code-only login.
+const PASSWORD_LOCK_ATTEMPTS = 2;
+// The "other signed-in device" we notify for step-up approval.
+const TRUSTED_DEVICE = "Pixel 7 · Kathmandu";
 
 export default function LoginScreen() {
   const navigate = useNavigate();
@@ -27,7 +34,11 @@ export default function LoginScreen() {
   const [esewaId, setEsewaId] = useState("9801000001");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [stage, setStage] = useState("credentials"); // 'credentials' | 'otp'
+  // 'credentials' | 'deviceApproval' | 'otp'
+  const [stage, setStage] = useState("credentials");
+  // Once too many passwords fail we drop into code-only mode: the password
+  // field is removed and login can only continue via the device approval + OTP.
+  const [otpOnly, setOtpOnly] = useState(false);
   const failedRef = useRef(0);
 
   // OTP stage state
@@ -110,33 +121,72 @@ export default function LoginScreen() {
     [tier, loginResult.firedSignals],
   );
 
+  // Score the login context and route into the right verification step.
+  // failedAttempts fires if a scenario preset set it, OR the user fumbled the
+  // password enough times — a classic account-takeover signal. When we've
+  // locked the password, we always step up (device approval → OTP).
+  const proceedAfterAuth = (forceStepUp) => {
+    const result = runLoginScoring({
+      ...simulation,
+      failedAttempts:
+        simulation.failedAttempts || forceStepUp || failedRef.current >= PASSWORD_LOCK_ATTEMPTS,
+    });
+
+    if (result.tier === "stealth" && !forceStepUp) {
+      navigate("/send"); // frictionless — straight to the transaction app
+    } else if (forceStepUp) {
+      setStage("deviceApproval"); // locked out of password — verify on trusted device first
+    } else {
+      setStage("otp"); // risky login — verify with an OTP first
+    }
+  };
+
   const submitCredentials = (event) => {
     event.preventDefault();
-    if (!esewaId.trim() || !password) return;
+    if (!esewaId.trim()) return;
+
+    // In code-only mode the password field is gone — go straight to step-up.
+    if (otpOnly) {
+      setError("");
+      proceedAfterAuth(true);
+      return;
+    }
+
+    // The "Repeated failed passwords" simulation toggle stands in for a real
+    // brute-force lockout: clicking Log in with it on jumps straight to the
+    // password-lock + device-approval step-up, no need to mistype on stage.
+    if (simulation.failedAttempts) {
+      setOtpOnly(true);
+      setPassword("");
+      setError("");
+      proceedAfterAuth(true);
+      return;
+    }
+
+    if (!password) return;
 
     if (password !== DEMO_PASSWORD) {
       failedRef.current += 1;
+
+      // Past the limit: stop trusting the password. Disable it and force a
+      // trusted-device approval + OTP instead of letting the guessing continue.
+      if (failedRef.current >= PASSWORD_LOCK_ATTEMPTS) {
+        setOtpOnly(true);
+        setPassword("");
+        setError("");
+        proceedAfterAuth(true);
+        return;
+      }
+
       setError(
-        `Incorrect password. (Demo password is "${DEMO_PASSWORD}".) Attempt ${failedRef.current}.`,
+        `Incorrect password. (Demo password is "${DEMO_PASSWORD}".) ${PASSWORD_LOCK_ATTEMPTS - failedRef.current} attempt left before password login is disabled.`,
       );
       setPassword("");
       return;
     }
 
     setError("");
-    // Score the login context. failedAttempts fires if a scenario preset set
-    // it, OR the user fumbled the password 2+ times before getting in — a
-    // classic account-takeover signal.
-    const result = runLoginScoring({
-      ...simulation,
-      failedAttempts: simulation.failedAttempts || failedRef.current >= 2,
-    });
-
-    if (result.tier === "stealth") {
-      navigate("/send"); // frictionless — straight to the transaction app
-    } else {
-      setStage("otp"); // risky login — verify with an OTP first
-    }
+    proceedAfterAuth(false);
   };
 
   const canVerify = (() => {
@@ -180,23 +230,74 @@ export default function LoginScreen() {
             />
           </Field>
 
-          <Field label="Password">
-            <Input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-            />
-          </Field>
+          {otpOnly ? (
+            <div className="rounded-xl border border-caution-border bg-caution-bg px-4 py-3 flex items-start gap-3">
+              <Lock size={18} className="mt-0.5 shrink-0 text-caution-accent" />
+              <p className="text-sm text-caution-text">
+                <span className="font-bold">Password login disabled.</span> Too many
+                failed attempts. For your security, verify with your trusted device
+                and the code we'll send to your phone.
+              </p>
+            </div>
+          ) : (
+            <Field label="Password">
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+              />
+            </Field>
+          )}
 
           {error ? <p className="text-xs text-danger-accent">{error}</p> : null}
 
           <div className="mt-auto">
-            <Button type="submit" disabled={!esewaId.trim() || !password}>
-              Log in
+            <Button
+              type="submit"
+              disabled={!esewaId.trim() || (!otpOnly && !simulation.failedAttempts && !password)}
+            >
+              {otpOnly ? "Verify another way" : "Log in"}
             </Button>
           </div>
         </form>
+      </>
+    );
+  }
+
+  // ---- Device-approval step-up (after the password is locked) ----
+  if (stage === "deviceApproval") {
+    return (
+      <>
+        <ScreenHeader
+          title="Confirm it's you"
+          onBack={() => {
+            setStage("credentials");
+            setError("");
+          }}
+        />
+        <div className="flex-1 px-5 py-8 flex flex-col gap-6">
+          <div className="flex flex-col items-center gap-1 mt-2 text-center">
+            <p className="text-lg font-bold">Unusual sign-in blocked</p>
+            <p className="text-sm text-esewa-textMuted">
+              We stopped the repeated password attempts and alerted your trusted
+              device. Approve there to continue.
+            </p>
+          </div>
+
+          <DeviceApprovalCard
+            device={TRUSTED_DEVICE}
+            onApproved={() => setStage("otp")}
+          />
+
+          <button
+            type="button"
+            onClick={() => setStage("otp")}
+            className="text-sm font-semibold text-esewa-green cursor-pointer hover:underline"
+          >
+            Use the code sent to my phone instead
+          </button>
+        </div>
       </>
     );
   }
