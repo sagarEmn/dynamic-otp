@@ -14,7 +14,7 @@ import OtpInput from "../components/ui/OtpInput.jsx";
 import { buildBannerMessage, bannerTone } from "../lib/bannerMessage.js";
 import { buildLoginSmsMessage } from "../lib/smsMessage.js";
 
-const DEMO_PASSWORD = "password";
+const DEMO_PASSWORD = "jjjj";
 const DEMO_OTP = "123456";
 const INTERVENTION_TIMER_SECONDS = 10;
 // Average gap between digits (ms) that counts as "dictated" entry on a call.
