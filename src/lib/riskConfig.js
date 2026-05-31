@@ -3,15 +3,14 @@
 // touching the engine logic.
 //
 // Signals split by phase:
-//   Environmental (shared by login + transaction): activeCall,
-//     unusualLocation, unusualTime.
-//   Login-only: newDevice, failedAttempts.
+//   Environmental (shared by login + transaction): activeCall, unusualTime.
+//   Login-only: newDevice, unusualLocation, failedAttempts.
 //   Transaction-only: highValue, veryHighValue.
 //
 // NON-NEGOTIABLE: the three transaction demo scenarios must land every time.
-//   A: Rs.500, no toggles                         -> 0   -> stealth
-//   B: Rs.25,000, unusual location                -> 55  -> caution      (30 + 25)
-//   C: Rs.50,000, active call + unusual location  -> 106 -> intervention (30 + 15 + 36 + 25)
+//   A: Rs.500, no toggles              -> 0   -> stealth
+//   B: Rs.25,000, unusual time         -> 45  -> caution      (30 + 15)
+//   C: Rs.50,000, active call          -> 81  -> intervention (30 + 15 + 36)
 
 // Tier cutoffs (inclusive lower bound). Defined first so signal weights can be
 // derived from them — see activeCall below.

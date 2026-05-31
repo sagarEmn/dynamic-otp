@@ -9,13 +9,13 @@ const AMOUNT_WEIGHTS = [
 // Environmental weights — shared by both authentication phases.
 const ENV_WEIGHTS = [
   { key: "activeCall",       label: "Active call",      max: 50 },
-  { key: "unusualLocation",  label: "Unusual location", max: 50 },
   { key: "unusualTime",      label: "Unusual time",     max: 30 },
 ];
 
-// Login-only weights (new device is evaluated at sign-in only).
+// Login-only weights (new device + unusual location are established at sign-in).
 const LOGIN_WEIGHTS = [
   { key: "newDevice",        label: "New device",       max: 50 },
+  { key: "unusualLocation",  label: "Unusual location", max: 50 },
   { key: "failedAttempts",   label: "Failed passwords", max: 50 },
 ];
 

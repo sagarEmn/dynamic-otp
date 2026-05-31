@@ -16,20 +16,19 @@ const scenarios = [
     expectTier: "stealth",
   },
   {
-    name: "B — Rs.25,000, unusual location",
-    input: { amount: 25000, unusualLocation: true, now: noon },
-    expectScore: 55, // highValue 30 + unusualLocation 25
+    name: "B — Rs.25,000, unusual time",
+    input: { amount: 25000, unusualTime: true, now: noon },
+    expectScore: 45, // highValue 30 + unusualTime 15
     expectTier: "caution",
   },
   {
-    name: "C — Rs.50,000, active call + unusual location",
+    name: "C — Rs.50,000, active call",
     input: {
       amount: 50000,
       activeCall: true,
-      unusualLocation: true,
       now: noon,
     },
-    expectScore: 106, // highValue 30 + veryHighValue 15 + activeCall 36 + unusualLocation 25
+    expectScore: 81, // highValue 30 + veryHighValue 15 + activeCall 36
     expectTier: "intervention",
   },
 ];
@@ -63,18 +62,18 @@ console.log("\nUnusual-time toggle\n");
   );
 }
 
-// Behavioral re-escalation: Caution (55) + paste (+20) = 75 -> intervention
+// Behavioral re-escalation: Caution (45) + paste (+20) = 65 -> intervention
 console.log("\nBehavioral re-escalation\n");
 {
   const base = scoreTransaction({
     amount: 25000,
-    unusualLocation: true,
+    unusualTime: true,
     now: noon,
   });
   const r = applyBehavioral(base, ["paste"]);
   log(
-    r.score === 75 && r.tier === "intervention",
-    `Caution + paste  ->  score ${r.score} (want 75), tier ${r.tier} (want intervention)`,
+    r.score === 65 && r.tier === "intervention",
+    `Caution + paste  ->  score ${r.score} (want 65), tier ${r.tier} (want intervention)`,
   );
 }
 

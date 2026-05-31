@@ -1,15 +1,16 @@
 import { useRisk } from "../context/useRisk.js";
 
-// Environmental signals are shared by both phases. New device and failed-
-// password attempts are login-only signals, so they only appear on login.
+// Active call + unusual time are shared by both phases. New device, unusual
+// location, and failed-password attempts are login-only (where/what-device the
+// sign-in came from is established at login), so they only appear on login.
 const ENV_TOGGLES = [
   { key: "activeCall",      label: "Active phone call" },
-  { key: "unusualLocation", label: "Unusual location" },
   { key: "unusualTime",     label: "Unusual time (odd hours)" },
 ];
 
 const LOGIN_TOGGLES = [
   { key: "newDevice",       label: "New / unrecognized device" },
+  { key: "unusualLocation", label: "Unusual location" },
   { key: "failedAttempts",  label: "Repeated failed passwords" },
 ];
 

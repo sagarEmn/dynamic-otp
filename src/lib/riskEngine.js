@@ -39,9 +39,10 @@ function buildResult(firedSignals, config) {
 }
 
 // The environmental signals shared by BOTH authentication phases (login and
-// transaction): active call, unusual location, unusual time.
-// (New device is LOGIN-ONLY — a device is recognized at sign-in, so it's not
-//  re-evaluated at transaction time. Added in scoreLogin().)
+// transaction): active call, unusual time.
+// (New device AND unusual location are LOGIN-ONLY — WHERE and WHAT-device the
+//  sign-in came from is established at login, so they aren't re-evaluated at
+//  transaction time. Both added in scoreLogin().)
 // Returns the fired-signal objects so each phase can add its own on top.
 function environmentalSignals(input, config) {
   const { weights } = config;
@@ -49,7 +50,6 @@ function environmentalSignals(input, config) {
   const add = (id, points) => fired.push({ id, label: SIGNAL_LABELS[id], points });
 
   if (input.activeCall) add("activeCall", weights.activeCall);
-  if (input.unusualLocation) add("unusualLocation", weights.unusualLocation);
   // Toggle-only: deliberately does NOT read the system clock, so scoring is
   // deterministic at any hour and the demo is reproducible.
   if (input.unusualTime) add("unusualTime", weights.unusualTime);
@@ -68,12 +68,19 @@ function environmentalSignals(input, config) {
  */
 export function scoreLogin(input, config = DEFAULT_CONFIG) {
   const fired = environmentalSignals(input, config);
-  // New device is login-only — a device is recognized at sign-in.
+  // New device + unusual location are login-only — where and on what device the
+  // sign-in happened is established at login, not re-checked per transaction.
   if (input.newDevice)
     fired.push({
       id: "newDevice",
       label: SIGNAL_LABELS.newDevice,
       points: config.weights.newDevice,
+    });
+  if (input.unusualLocation)
+    fired.push({
+      id: "unusualLocation",
+      label: SIGNAL_LABELS.unusualLocation,
+      points: config.weights.unusualLocation,
     });
   if (input.failedAttempts)
     fired.push({

@@ -8,7 +8,7 @@ import Button from "../components/ui/Button.jsx";
 import SmsPopup from "../components/ui/SmsPopup.jsx";
 import OtpInput from "../components/ui/OtpInput.jsx";
 import { buildSmsMessage } from "../lib/smsMessage.js";
-import { buildBannerMessage } from "../lib/bannerMessage.js";
+import { buildBannerMessage, bannerTone } from "../lib/bannerMessage.js";
 
 const DEMO_OTP = "123456";
 const INTERVENTION_TIMER_SECONDS = 10;
@@ -58,6 +58,7 @@ export default function OtpScreen() {
     () => buildBannerMessage(result.tier, result.firedSignals),
     [result.tier, result.firedSignals],
   );
+  const tone = bannerTone(result.tier, result.firedSignals);
 
   // When an active call fired, the live fraud is someone coaching the user ON
   // the call — so the acknowledgement asks them to assert that no one is.
@@ -111,7 +112,7 @@ export default function OtpScreen() {
       >
         <SmsPopup message={smsMessage} />
         <div className="flex-1 flex flex-col justify-center gap-3">
-          <Banner tone={result.tier}>
+          <Banner tone={tone}>
             {bannerMessage}
           </Banner>
 
