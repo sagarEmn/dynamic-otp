@@ -7,49 +7,35 @@
 
 ---
 
+> **Short version (~3–4 min): all 7 beats, kept tight.** One action + one line each. Beat 5 is the least important — say it, don't click it. Fallback options + reference scores are at the bottom.
+
 ## Beat 1 — Stealth (don't punish honest users)
-- **Login:** no toggles → log in → straight into app, **no OTP**.
-  > "My own login — zero friction. The mode most solutions forget."
-- **Transaction:** Rs.500 → Proceed → clean green OTP screen.
-  > "A normal payment, no warning. Safe users never get interrupted — that's the point."
+- Clean login → straight in, **no OTP**. Then Rs.500 → Proceed → clean green OTP.
+  > "Authentication happens twice — login and payment. We guard both. My own login, my normal payment — zero friction. Safe users are never interrupted."
 
 ## Beat 2 — Caution (notice & slow down)
-- Toggle **Active phone call** → log in → **amber** OTP, one acknowledge checkbox.
-  > "On a call — mildly risky. The calm green breaks to amber. You must confirm before the OTP unlocks."
+- Toggle **Active phone call** → log in → **amber** OTP + acknowledge checkbox.
+  > "On a call — mildly risky. Green breaks to amber, and you confirm before the code unlocks."
 
 ## Beat 3 — Intervention (break the script) ⭐
-- Toggle **New device + Unusual location + Failed passwords** → log in → **red takeover**, 10s timer, checkboxes, OTP locked.
-  > "Someone with your password, a strange device, a strange city — account takeover. The green is gone. A forced pause and active confirmations — the one screen a scammer can't smoothly talk you through. Stopped at the door."
+- Toggle **New device + Unusual location + Failed passwords** → log in → **red takeover**: timer, checkboxes, OTP locked.
+  > "Stolen password, strange device, strange city — account takeover. A forced pause and active confirmations: the one screen a scammer can't talk you through."
 
-## Beat 4 — Guard the payment too (transaction phase) ⭐
-- Log in clean → on **Send Money**, tap the **Rs.50,000** chip → keep **Active phone call** on → **Proceed**.
-  > "Same engine, second moment. A big transfer while you're on a call — the classic scam-in-progress."
-  → processing → **red transaction OTP**: timer, checkboxes, OTP locked, and an SMS naming the **amount + recipient**.
-  > "Login wasn't a one-off. The payment screen escalates the same way — so the attacker is stopped whether they're hijacking the account or pushing a transfer."
-- *(Lighter option: Rs.25,000 + Unusual time → amber caution OTP.)*
+## Beat 4 — Guard the payment too ⭐
+- Clean login → **Rs.50,000** chip + **Active phone call** on → **Proceed** → **red transaction OTP** (SMS names amount + recipient).
+  > "Same engine, second moment. A big transfer on a call escalates exactly like the login did — both ends are guarded."
 
-## Beat 5 — Lock out the attacker (step-up) ⭐
-- Toggle **Repeated failed passwords** → click **Log in** (no password needed).
-  > "Someone's been guessing the password. So we stop trusting the password entirely."
-  → **password field disappears**, amber "Password login disabled" notice.
-- Lands on the **trusted-device approval** screen.
-  > "We alert a device the real owner already trusts. An attacker with a stolen password can't tap Approve on a phone they don't have."
-- Tap **Approve this sign-in** → confirms → login OTP.
-- Point at the **SMS** when it pops:
-  > "And the alert names the suspicious device, city, and time — *Samsung Galaxy A14 · Dhulikhel · 2:14 AM*. The owner reads that and instantly knows 'that's not me.'"
+## Beat 5 — Lock out the attacker *(say it, don't click)*
+- One line over the failed-password state:
+  > "And repeated failed passwords go further — we disable the password entirely and ask the user's *trusted device* to approve. A stolen password can't tap Approve on a phone the attacker doesn't have."
 
 ## Beat 6 — Behavioral catch (showstopper) ⭐⭐
-- On a caution screen (active call), reach the OTP, **type one digit per second**.
-  > "Watch — I'm typing like someone's reading me the code on the phone."
-  → escalates to red **live**.
-  > "Slow, dictated entry on a call. We caught the scam *in progress* — not from metadata, from the act itself."
-- *(Bonus: type fast → amber "you're going too fast" + extra checkbox.)*
+- On the amber (active-call) OTP, **type one digit per second** → escalates to **red live**.
+  > "I'm typing like someone's reading me the code on the phone. Slow, dictated entry on a call — we catch the scam *in progress*, from the act itself, not metadata."
 
 ## Beat 7 — Engine proof (kills "is it scripted?") ⭐
-- Open the **Risk Breakdown** panel on the OTP screen first.
-  > "Every point is accountable — here's exactly which signals fired and what each one added up to."
-- Then on **Risk Weights**, drag a slider up → screen escalates; **uncheck a toggle** → it de-escalates, live.
-  > "Not a script. I change one weight and the same screen re-scores in real time — up *and* down. A live risk engine, and this panel is a fraud-policy console eSewa's team could tune."
+- Open **Risk Breakdown** (the math), then on **Risk Weights** drag a slider up → escalates; uncheck a toggle → de-escalates, **live**.
+  > "Not scripted. The same screen re-scores in real time, up and down. A live engine — and this panel is a fraud-policy console eSewa could tune."
 
 ---
 
@@ -59,17 +45,19 @@
 ---
 
 ## Pre-pitch check (browser, ~10 min)
-1. All 7 beats render right (color / timer / checkboxes / escalation).
-2. Beat 4 (transaction): Rs.50k + active call → **red** transaction OTP; SMS names amount + recipient. (Rs.25k + time → amber.)
-3. Beat 5: failed-passwords toggle → Log in disables the password field; Approve advances to OTP; SMS names device · city · time.
-4. Beat 6: slow typing flips to red; fast typing shows the **yellow** banner.
-5. Beat 7: Risk Breakdown shows the math; slider up escalates, unchecking a toggle de-escalates — **live on the OTP screen**.
-6. Reset between runs: Success → Done → fresh login; clear all toggles (esp. failed-passwords + active call).
-7. SMS slides in, text matches scenario, doesn't block the OTP boxes.
+1. The 6 *clicked* beats render right (color / timer / checkboxes / escalation). Beat 5 is spoken — but have the failed-password lock state ready on screen in case a judge asks to see it.
+2. Beat 4 (transaction): Rs.50k + active call → **red** transaction OTP; SMS names amount + recipient.
+3. Beat 6: slow typing flips to red; fast typing shows the **yellow** banner.
+4. Beat 7: Risk Breakdown shows the math; slider up escalates, unchecking a toggle de-escalates — **live on the OTP screen**.
+5. Reset between runs: Success → Done → fresh login; clear all toggles (esp. failed-passwords + active call).
+6. SMS slides in, text matches scenario, doesn't block the OTP boxes.
+
+## Fallbacks (if a beat misbehaves)
+- **Beat 2/4 too tame?** Lighter caution = Rs.25,000 + Unusual time → amber.
+- **Beat 5 asked to show live?** Toggle **Repeated failed passwords** → Log in (no password) → password disables → **Approve this sign-in** → login OTP. Works regardless of tier.
+- **Beat 6 won't trigger?** Slow-dictation needs **active call on** + ~1s gaps between digits; too-fast needs all 6 under ~1.5s.
 
 ## Scores (for reference)
-- Login: clean 0 · active call 36 (caution) · unusual time 36 (caution) · **failed passwords alone 36 (caution)** · device+location+failed 86 (intervention)
+- Login: clean 0 · active call 36 (caution) · unusual time 36 (caution) · failed passwords alone 36 (caution) · device+location+failed 86 (intervention)
 - Transaction: Rs.500 = 0 · Rs.25k+time 45 (caution) · Rs.50k+call 81 (intervention)
 - Behavioral on caution: +slow-dictation → 61 (intervention) · +too-fast → 51 (caution, amber)
-
-> **Note:** Beat 4 (failed passwords) drives the step-up flow regardless of tier — clicking Log in with that toggle on always locks the password and opens trusted-device approval.
