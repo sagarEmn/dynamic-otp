@@ -155,7 +155,7 @@ No backend. Everything runs client-side.
 - Add `loginWeights.failedAttempts` to config. Remove the old `newPayee` signal entirely (engine, config, scenarios, banner copy, tests).
 
 ## Step 13 — The Login Screen (`/`)
-- eSewa login: **eSewa ID + password** (demo password `password`). Wrong password increments a failed-attempt counter; 2+ before success fires the `failedAttempts` signal.
+- eSewa login: **eSewa ID + password** (demo password `jjjj`). Wrong password increments a failed-attempt counter; 2+ before success fires the `failedAttempts` signal.
 - On Login: `scoreLogin()`. Stealth → navigate to `/send`. Caution/Intervention → switch to an in-screen **login OTP** stage reusing Banner, RiskBreakdown, OtpInput, SmsPopup.
 - Back chevron on the login OTP returns to the credentials stage.
 

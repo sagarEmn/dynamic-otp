@@ -54,7 +54,7 @@ Both side panels are **phase-aware**: on the login screen they show login signal
 
 **Problem it addresses:** The first place a fraudster authenticates is *login*. We need to detect a risky sign-in and warn before access is granted.
 
-**What it looks like:** A faithful eSewa login — **eSewa ID + password + Log in** button. The demo password is `password`; anything else counts as a failed attempt.
+**What it looks like:** A faithful eSewa login — **eSewa ID + password + Log in** button. The demo password is `jjjj`; anything else counts as a failed attempt.
 
 **The signals scored at login:**
 
