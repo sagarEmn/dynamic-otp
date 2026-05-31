@@ -9,7 +9,7 @@ const AMOUNT_WEIGHTS = [
 // Environmental weights — shared by both authentication phases.
 const ENV_WEIGHTS = [
   { key: "activeCall",       label: "Active call",      max: 50 },
-  { key: "unusualTime",      label: "Unusual time",     max: 30 },
+  { key: "unusualTime",      label: "Unusual time",     max: 50 },
 ];
 
 // Login-only weights (new device + unusual location are established at sign-in).
@@ -65,6 +65,15 @@ export default function AdminPanel({ isLogin = false }) {
     ? [...ENV_WEIGHTS, ...LOGIN_WEIGHTS]
     : [...AMOUNT_WEIGHTS, ...ENV_WEIGHTS];
 
+  // Which config bucket a signal's weight lives in. failedAttempts is always a
+  // login weight; unusualTime lives in loginWeights ON LOGIN (heavier there)
+  // but in the shared weights on transaction. Everything else is shared.
+  const bucketFor = (key) => {
+    if (key === "failedAttempts") return "loginWeights";
+    if (key === "unusualTime" && isLogin) return "loginWeights";
+    return "weights";
+  };
+
   return (
     <div className="flex flex-col gap-3">
       <p className="text-lg font-bold text-esewa-green uppercase tracking-widest">
@@ -77,19 +86,9 @@ export default function AdminPanel({ isLogin = false }) {
             <WeightRow
               key={key}
               label={label}
-              value={
-                key === "failedAttempts"
-                  ? config.loginWeights[key]
-                  : config.weights[key]
-              }
+              value={config[bucketFor(key)][key]}
               max={max}
-              onChange={(val) =>
-                updateWeight(
-                  key === "failedAttempts" ? "loginWeights" : "weights",
-                  key,
-                  val,
-                )
-              }
+              onChange={(val) => updateWeight(bucketFor(key), key, val)}
             />
           ))}
         </Section>

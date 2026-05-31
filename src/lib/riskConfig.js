@@ -36,6 +36,10 @@ export const DEFAULT_CONFIG = {
   // --- Login-phase signal weights ---
   loginWeights: {
     failedAttempts: 30, // 2+ wrong password attempts before success
+    // Unusual time weighs MORE at login than at transaction: an odd-hour
+    // sign-in alone should warrant a login OTP. Derived from CAUTION_MIN so it
+    // alone always clears caution. (Transaction keeps the lighter weights.unusualTime.)
+    unusualTime: CAUTION_MIN + 5,
   },
 
   // --- Behavioral signal weights (added live during authentication) ---

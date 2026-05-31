@@ -38,11 +38,10 @@ function buildResult(firedSignals, config) {
   return { score, firedSignals, tier: tierForScore(score, config) };
 }
 
-// The environmental signals shared by BOTH authentication phases (login and
-// transaction): active call, unusual time.
-// (New device AND unusual location are LOGIN-ONLY — WHERE and WHAT-device the
-//  sign-in came from is established at login, so they aren't re-evaluated at
-//  transaction time. Both added in scoreLogin().)
+// The environmental signals shared by BOTH authentication phases: active call.
+// (Unusual time is shared too but weighted differently per phase, so each
+//  scorer adds it explicitly. New device + unusual location are LOGIN-ONLY —
+//  where/what-device the sign-in came from is established at login.)
 // Returns the fired-signal objects so each phase can add its own on top.
 function environmentalSignals(input, config) {
   const { weights } = config;
@@ -50,9 +49,6 @@ function environmentalSignals(input, config) {
   const add = (id, points) => fired.push({ id, label: SIGNAL_LABELS[id], points });
 
   if (input.activeCall) add("activeCall", weights.activeCall);
-  // Toggle-only: deliberately does NOT read the system clock, so scoring is
-  // deterministic at any hour and the demo is reproducible.
-  if (input.unusualTime) add("unusualTime", weights.unusualTime);
 
   return fired;
 }
@@ -88,6 +84,14 @@ export function scoreLogin(input, config = DEFAULT_CONFIG) {
       label: SIGNAL_LABELS.failedAttempts,
       points: config.loginWeights.failedAttempts,
     });
+  // Unusual time uses the heavier LOGIN weight — an odd-hour sign-in alone
+  // warrants a login OTP. Toggle-only: never reads the system clock.
+  if (input.unusualTime)
+    fired.push({
+      id: "unusualTime",
+      label: SIGNAL_LABELS.unusualTime,
+      points: config.loginWeights.unusualTime,
+    });
   return buildResult(fired, config);
 }
 
@@ -104,6 +108,9 @@ export function scoreTransaction(input, config = DEFAULT_CONFIG) {
   const { weights, amount } = config;
   const fired = environmentalSignals(input, config);
   const add = (id, points) => fired.push({ id, label: SIGNAL_LABELS[id], points });
+
+  // Unusual time at the lighter shared weight (login weights it more heavily).
+  if (input.unusualTime) add("unusualTime", weights.unusualTime);
 
   const amt = Number(input.amount) || 0;
   if (amt > amount.highValueThreshold) add("highValue", weights.highValue);
