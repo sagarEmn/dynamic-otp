@@ -203,12 +203,3 @@
 
 ---
 
-## Appendix — Anticipated Q&A
-
-- **"Isn't the timer just friction users hate?"** Only in the rare high-risk case — 95% of flows are Stealth, no friction. The friction is *aimed at the attacker's script*, not the user.
-- **"How do you get real device/location/call data?"** Today they're simulated toggles — I'm upfront about that. The *intelligence* is real; production signals plug into the same interface. Our contribution is the approach, not re-building telephony.
-- **"What stops false positives?"** Live-tunable weights + thresholds, and behavioral signals only *add* to risk — none fire on their own.
-- **"Why guard login too, not just payment?"** Account-takeover strikes at login; payment scams strike at the transfer. "During authentication" means both — one engine guards both.
-- **"What if a genuine user types slowly / is being legitimately helped?"** The dictation flag needs an active call *and* slow gaps together, and it never hard-blocks — they confirm and proceed. Weights are tunable to the real population.
-- **"You're solo — can you execute?"** I architected, engineered, and designed the whole thing, and unit-tested the engine so the demo is deterministic. What you saw is the execution.
-- **"What's genuinely built vs simulated?"** Built: full app, two-phase tested engine, three modes, live behavioral detection, dynamic SMS, risk breakdown, live weights. Simulated on purpose: the environmental conditions we can't produce in a demo room.
