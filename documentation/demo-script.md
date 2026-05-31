@@ -1,7 +1,7 @@
 # Demo Script — Dynamic Alert
 
 **Creds:** password `jjjj` · OTP `123456`
-**Arc:** silent → notice → takeover → catch-it-live → engine proof. Each beat more dramatic than the last.
+**Arc:** silent → notice → takeover → lock-out-the-attacker → catch-it-live → engine proof. Each beat more dramatic than the last.
 
 ---
 
@@ -19,14 +19,24 @@
 - Toggle **New device + Unusual location + Failed passwords** → log in → **red takeover**, 10s timer, checkboxes, OTP locked.
   > "Someone with your password, a strange device, a strange city — account takeover. The green is gone. A forced pause and active confirmations — the one screen a scammer can't smoothly talk you through. Stopped at the door."
 
-## Beat 4 — Behavioral catch (showstopper) ⭐⭐
+## Beat 4 — Lock out the attacker (step-up) ⭐
+- Toggle **Repeated failed passwords** → click **Log in** (no password needed).
+  > "Someone's been guessing the password. So we stop trusting the password entirely."
+  → **password field disappears**, amber "Password login disabled" notice.
+- Lands on the **trusted-device approval** screen.
+  > "We alert a device the real owner already trusts. An attacker with a stolen password can't tap Approve on a phone they don't have."
+- Tap **Approve this sign-in** → confirms → login OTP.
+- Point at the **SMS** when it pops:
+  > "And the alert names the suspicious device, city, and time — *Samsung Galaxy A14 · Dhulikhel · 2:14 AM*. The owner reads that and instantly knows 'that's not me.'"
+
+## Beat 5 — Behavioral catch (showstopper) ⭐⭐
 - On a caution screen (active call), reach the OTP, **type one digit per second**.
   > "Watch — I'm typing like someone's reading me the code on the phone."
   → escalates to red **live**.
   > "Slow, dictated entry on a call. We caught the scam *in progress* — not from metadata, from the act itself."
 - *(Bonus: type fast → amber "you're going too fast" + extra checkbox.)*
 
-## Beat 5 — Engine proof (kills "is it scripted?") ⭐
+## Beat 6 — Engine proof (kills "is it scripted?") ⭐
 - On **Risk Weights**, drag a slider — or uncheck a toggle while on the OTP screen.
   > "Not a script. I change one weight and the same screen re-scores in real time. A live risk engine — and this panel is a fraud-policy console eSewa's team could tune."
 
@@ -38,13 +48,16 @@
 ---
 
 ## Pre-pitch check (browser, ~10 min)
-1. All 5 beats render right (color / timer / checkboxes / escalation).
-2. Beat 4: slow typing flips to red; fast typing shows the **yellow** banner.
-3. Beat 5: slider/toggle change visibly re-tiers **while on the OTP screen**.
-4. Reset: Success → Done → fresh login.
-5. SMS slides in, text matches scenario, doesn't block the OTP boxes.
+1. All 6 beats render right (color / timer / checkboxes / escalation).
+2. Beat 4: failed-passwords toggle → Log in disables the password field; Approve advances to OTP; SMS names device · city · time.
+3. Beat 5: slow typing flips to red; fast typing shows the **yellow** banner.
+4. Beat 6: slider/toggle change visibly re-tiers **while on the OTP screen**.
+5. Reset: Success → Done → fresh login (failed-passwords toggle off).
+6. SMS slides in, text matches scenario, doesn't block the OTP boxes.
 
 ## Scores (for reference)
-- Login: clean 0 · active call 36 (caution) · unusual time 36 (caution) · device+location+failed 80 (intervention)
+- Login: clean 0 · active call 36 (caution) · unusual time 36 (caution) · **failed passwords alone 36 (caution)** · device+location+failed 86 (intervention)
 - Transaction: Rs.500 = 0 · Rs.25k+time 45 (caution) · Rs.50k+call 81 (intervention)
 - Behavioral on caution: +slow-dictation → 61 (intervention) · +too-fast → 51 (caution, amber)
+
+> **Note:** Beat 4 (failed passwords) drives the step-up flow regardless of tier — clicking Log in with that toggle on always locks the password and opens trusted-device approval.
